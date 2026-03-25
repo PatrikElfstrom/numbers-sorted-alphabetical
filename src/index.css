@@ -4,8 +4,19 @@
   font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
-  color: #1e2430;
-  background: #f6f8fc;
+  color: #eef2ff;
+  background:
+    radial-gradient(circle at 18% 52%, rgba(60, 201, 255, 0.13), transparent 18%),
+    radial-gradient(circle at 52% 24%, rgba(120, 97, 255, 0.16), transparent 16%),
+    radial-gradient(circle at 82% 76%, rgba(130, 106, 255, 0.14), transparent 18%),
+    radial-gradient(rgba(109, 131, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(180deg, #05060a, #05060a);
+  background-size:
+    auto,
+    auto,
+    auto,
+    18px 18px,
+    100% 100%;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

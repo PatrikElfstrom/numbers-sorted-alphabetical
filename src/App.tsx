@@ -117,8 +117,6 @@ function toSwedishNumber(value: number): string {
   return `${thousandWord}${toSwedishNumber(remainder)}`
 }
 
-const cellSize = 9
-
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
@@ -187,35 +185,66 @@ function buildChartData(maxValue: number): ChartData {
 }
 
 function App() {
+  const plotShellRef = useRef<HTMLDivElement | null>(null)
   const plotRef = useRef<HTMLDivElement | null>(null)
   const [rangeStart, setRangeStart] = useState(0)
   const [rangeEnd, setRangeEnd] = useState(100)
   const [chartMax, setChartMax] = useState(minChartValue)
+  const [plotSize, setPlotSize] = useState(720)
 
   const { data, gridCells, xTicks, xValues, yTicks, yValues } = buildChartData(chartMax)
-  const frameWidth = cellSize * (chartMax + 1)
-  const frameHeight = cellSize * (chartMax + 1)
   const visibleData = data.filter(
     (entry) => entry.value >= rangeStart && entry.value <= rangeEnd,
   )
+
+  useEffect(() => {
+    if (!plotShellRef.current) {
+      return
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+
+      if (!entry) {
+        return
+      }
+
+      const nextSize = Math.floor(
+        Math.min(entry.contentRect.width, entry.contentRect.height),
+      )
+
+      if (nextSize > 0) {
+        setPlotSize(nextSize)
+      }
+    })
+
+    observer.observe(plotShellRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   useEffect(() => {
     if (!plotRef.current) {
       return
     }
 
+    const marginPad = Math.max(12, Math.round(plotSize * 0.018))
+    const axisPad = Math.max(38, Math.round(plotSize * 0.055))
+
     const plot = Plot.plot({
-      width: frameWidth + 114,
-      height: frameHeight + 102,
-      marginTop: 32,
-      marginRight: 32,
-      marginBottom: 68,
-      marginLeft: 82,
+      width: plotSize,
+      height: plotSize,
+      marginTop: marginPad,
+      marginRight: marginPad,
+      marginBottom: axisPad,
+      marginLeft: axisPad,
       style: {
         background: 'transparent',
-        color: '#1e2430',
+        color: '#f2f4ff',
         fontFamily: 'var(--font-body)',
-        fontSize: '12px',
+        fontSize: `${Math.max(10, Math.round(plotSize * 0.011))}px`,
         overflow: 'visible',
       },
       x: {
@@ -239,19 +268,19 @@ function App() {
         Plot.cell(gridCells, {
           x: 'value',
           y: 'alphabeticalRank',
-          fill: '#eef2fb',
-          inset: 0.9,
+          fill: 'rgba(22, 24, 37, 0.94)',
+          inset: 0.7,
         }),
         Plot.frame({
           inset: 0,
-          stroke: '#d4dbeb',
+          stroke: 'rgba(200, 212, 255, 0.22)',
           strokeWidth: 1,
         }),
         Plot.cell(visibleData, {
           x: 'value',
           y: 'alphabeticalRank',
-          fill: '#6c63ff',
-          inset: 0.9,
+          fill: '#9c8dff',
+          inset: 0.7,
           title: (entry: NumberPoint) => `${entry.name} (${entry.value})`,
         }),
       ],
@@ -262,7 +291,7 @@ function App() {
     return () => {
       plot.remove()
     }
-  }, [gridCells, frameHeight, frameWidth, visibleData, xTicks, xValues, yTicks, yValues])
+  }, [gridCells, plotSize, visibleData, xTicks, xValues, yTicks, yValues])
 
   const visibleCount = visibleData.length
 
@@ -347,7 +376,9 @@ function App() {
         </p>
       </section>
 
-      <div className="plot-shell" ref={plotRef} />
+      <div className="plot-shell" ref={plotShellRef}>
+        <div className="plot-canvas" ref={plotRef} />
+      </div>
     </main>
   )
 }
