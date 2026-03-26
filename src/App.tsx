@@ -14,8 +14,14 @@ type RawNumberEntry = {
   value: number
 }
 
+type EqualityPoint = {
+  alphabeticalRank: number
+  value: number
+}
+
 type ChartData = {
   data: NumberPoint[]
+  equalityPoints: EqualityPoint[]
   pointsByValue: Map<number, NumberPoint>
   xValues: number[]
   xTicks: number[]
@@ -161,7 +167,7 @@ function getPlotLayout(plotSize: number) {
 function buildChartData(rangeStart: number, rangeEnd: number): ChartData {
   const xValues = d3.range(rangeStart, rangeEnd + 1)
   const count = xValues.length
-  const yValues = d3.range(0, count)
+  const yValues = d3.range(1, count + 1)
   const rawData: RawNumberEntry[] = xValues.map(
     (value: number): RawNumberEntry => ({
       name: getSwedishNumber(value),
@@ -174,7 +180,7 @@ function buildChartData(rangeStart: number, rangeEnd: number): ChartData {
       collator.compare(a.name, b.name),
     )
     .map((entry: RawNumberEntry, index: number) => ({
-      alphabeticalRank: index,
+      alphabeticalRank: index + 1,
       name: entry.name,
       value: entry.value,
     }))
@@ -187,17 +193,27 @@ function buildChartData(rangeStart: number, rangeEnd: number): ChartData {
 
   const tickStep = getTickStep(Math.max(1, rangeEnd - rangeStart))
   const xTicks = d3.range(rangeStart, rangeEnd + 1, tickStep)
-  const yTicks = d3.range(0, count, tickStep)
+  const yTicks = d3.range(1, count + 1, tickStep)
 
   if (xTicks[xTicks.length - 1] !== rangeEnd) {
     xTicks.push(rangeEnd)
   }
 
-  if (yTicks.length === 0 || yTicks[yTicks.length - 1] !== count - 1) {
-    yTicks.push(count - 1)
+  if (yTicks.length === 0 || yTicks[yTicks.length - 1] !== count) {
+    yTicks.push(count)
   }
 
-  return { data, pointsByValue, xTicks, xValues, yTicks, yValues }
+  const equalityStart = Math.max(rangeStart, 0)
+  const equalityEnd = Math.min(rangeEnd, count - 1)
+  const equalityPoints =
+    equalityStart <= equalityEnd
+      ? d3.range(equalityStart, equalityEnd + 1).map((value: number) => ({
+          alphabeticalRank: value + 1,
+          value,
+        }))
+      : []
+
+  return { data, equalityPoints, pointsByValue, xTicks, xValues, yTicks, yValues }
 }
 
 function App() {
@@ -209,6 +225,7 @@ function App() {
   const [visibleStart, setVisibleStart] = useState(defaultAvailableStart)
   const [visibleEnd, setVisibleEnd] = useState(defaultAvailableEnd)
   const [plotSize, setPlotSize] = useState(720)
+  const [showEqualityLine, setShowEqualityLine] = useState(false)
 
   const chartData = useMemo(
     () => buildChartData(availableStart, availableEnd),
@@ -366,12 +383,35 @@ function App() {
         reverse: true,
       },
       marks: [
+        ...(showEqualityLine && chartData.equalityPoints.length > 1
+          ? [
+              Plot.line(chartData.equalityPoints, {
+                x: 'value',
+                y: 'alphabeticalRank',
+                stroke: '#ffd27a',
+                strokeWidth: Math.max(2, plotSize * 0.0032),
+                strokeOpacity: 0.92,
+                strokeDasharray: '8 6',
+              }),
+            ]
+          : []),
+        ...(showEqualityLine && chartData.equalityPoints.length === 1
+          ? [
+              Plot.dot(chartData.equalityPoints, {
+                x: 'value',
+                y: 'alphabeticalRank',
+                fill: '#ffd27a',
+                r: Math.max(4, plotSize * 0.0075),
+              }),
+            ]
+          : []),
         Plot.cell(visiblePoints, {
           x: 'value',
           y: 'alphabeticalRank',
           fill: '#9c8dff',
           inset: 0.7,
-          title: (entry: NumberPoint) => `${entry.name} (${entry.value})`,
+          title: (entry: NumberPoint) =>
+            `${entry.name}\nValue: ${entry.value}\nPosition: ${entry.alphabeticalRank}`,
         }),
       ],
     })
@@ -381,7 +421,7 @@ function App() {
     return () => {
       overlayPlot.remove()
     }
-  }, [chartData.xValues, chartData.yValues, plotSize, visiblePoints])
+  }, [chartData.equalityPoints, chartData.xValues, chartData.yValues, plotSize, showEqualityLine, visiblePoints])
 
   const availableSpan = Math.max(1, availableEnd - availableStart)
   const visibleCount = Math.max(0, visibleEnd - visibleStart + 1)
@@ -467,29 +507,49 @@ function App() {
           </label>
         </div>
 
+        <label className="toggle-switch">
+          <input
+            className="toggle-switch__input"
+            type="checkbox"
+            checked={showEqualityLine}
+            onChange={(event) => {
+              setShowEqualityLine(event.target.checked)
+            }}
+          />
+          <span className="toggle-switch__control" aria-hidden="true">
+            <span className="toggle-switch__thumb" />
+          </span>
+          <span className="toggle-switch__copy">
+            <strong>Show y=x+1</strong>
+            <small>Compare values with their 1-based alphabetical rank.</small>
+          </span>
+        </label>
+
         <p className="control-note">
           {visibleCount} point{visibleCount === 1 ? '' : 's'} visible from {availableCount}{' '}
           available. Supported range: {minAvailableStart} to {maxAvailableValue}.
         </p>
       </section>
 
-      <div
-        className="plot-shell"
-        style={{ height: `${plotSize}px`, width: `${plotSize}px` }}
-      >
-        <div className="plot-canvas">
-          <div
-            className="plot-grid"
-            style={{
-              top: `${marginPad}px`,
-              left: `${axisPad}px`,
-              width: `${plotAreaSize}px`,
-              height: `${plotAreaSize}px`,
-              backgroundSize: `${gridCellSize}px ${gridCellSize}px`,
-            }}
-          />
-          <div className="plot-layer plot-layer--base" ref={basePlotRef} />
-          <div className="plot-layer plot-layer--overlay" ref={overlayPlotRef} />
+      <div className="plot-shell">
+        <div
+          className="plot-frame"
+          style={{ height: `${plotSize}px`, width: `${plotSize}px` }}
+        >
+          <div className="plot-canvas">
+            <div
+              className="plot-grid"
+              style={{
+                top: `${marginPad}px`,
+                left: `${axisPad}px`,
+                width: `${plotAreaSize}px`,
+                height: `${plotAreaSize}px`,
+                backgroundSize: `${gridCellSize}px ${gridCellSize}px`,
+              }}
+            />
+            <div className="plot-layer plot-layer--base" ref={basePlotRef} />
+            <div className="plot-layer plot-layer--overlay" ref={overlayPlotRef} />
+          </div>
         </div>
       </div>
     </main>
