@@ -47,6 +47,7 @@ const defaultAvailableEnd = 100;
 const userOptionsStorageKey = "alphabetical-numbers:user-options";
 const compactPointMinSize = 1;
 const compactPointMaxSize = 4.8;
+const defaultAvailableCount = defaultAvailableEnd - defaultAvailableStart + 1;
 
 type StoredUserOptions = {
   selectedLanguageId: LanguageId;
@@ -54,6 +55,8 @@ type StoredUserOptions = {
   availableEnd: number;
   visibleStart: number;
   visibleEnd: number;
+  visibleRankStart: number;
+  visibleRankEnd: number;
   pointDisplayMode: PointDisplayMode;
   showEqualityLine: boolean;
 };
@@ -74,6 +77,27 @@ function getStoredNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value)
     ? Math.trunc(value)
     : fallback;
+}
+
+function getRangeTrackOffsets(
+  selectionStart: number,
+  selectionEnd: number,
+  domainStart: number,
+  domainEnd: number,
+) {
+  if (domainEnd <= domainStart) {
+    return {
+      startOffset: 0,
+      endOffset: 0,
+    };
+  }
+
+  const span = domainEnd - domainStart;
+
+  return {
+    startOffset: ((selectionStart - domainStart) / span) * 100,
+    endOffset: 100 - ((selectionEnd - domainStart) / span) * 100,
+  };
 }
 
 function getStoredUserOptions(): StoredUserOptions | null {
@@ -118,6 +142,17 @@ function getStoredUserOptions(): StoredUserOptions | null {
       visibleStart,
       availableEnd,
     );
+    const availableCount = availableEnd - availableStart + 1;
+    const visibleRankStart = clamp(
+      getStoredNumber(parsedOptions.visibleRankStart, 1),
+      1,
+      availableCount,
+    );
+    const visibleRankEnd = clamp(
+      getStoredNumber(parsedOptions.visibleRankEnd, availableCount),
+      visibleRankStart,
+      availableCount,
+    );
     const pointDisplayMode = isPointDisplayMode(parsedOptions.pointDisplayMode)
       ? parsedOptions.pointDisplayMode
       : "auto";
@@ -128,6 +163,8 @@ function getStoredUserOptions(): StoredUserOptions | null {
       availableEnd,
       visibleStart,
       visibleEnd,
+      visibleRankStart,
+      visibleRankEnd,
       pointDisplayMode,
       showEqualityLine: parsedOptions.showEqualityLine === true,
     };
@@ -280,6 +317,12 @@ function App() {
   const [visibleEnd, setVisibleEnd] = useState(
     initialUserOptions?.visibleEnd ?? defaultAvailableEnd,
   );
+  const [visibleRankStart, setVisibleRankStart] = useState(
+    initialUserOptions?.visibleRankStart ?? 1,
+  );
+  const [visibleRankEnd, setVisibleRankEnd] = useState(
+    initialUserOptions?.visibleRankEnd ?? defaultAvailableCount,
+  );
   const [plotSize, setPlotSize] = useState(720);
   const [pointDisplayMode, setPointDisplayMode] = useState<PointDisplayMode>(
     initialUserOptions?.pointDisplayMode ?? "auto",
@@ -295,6 +338,8 @@ function App() {
   );
   const deferredVisibleStart = useDeferredValue(visibleStart);
   const deferredVisibleEnd = useDeferredValue(visibleEnd);
+  const deferredVisibleRankStart = useDeferredValue(visibleRankStart);
+  const deferredVisibleRankEnd = useDeferredValue(visibleRankEnd);
 
   const visiblePoints = useMemo(() => {
     const points: NumberPoint[] = [];
@@ -306,17 +351,43 @@ function App() {
     ) {
       const point = chartData.pointsByValue.get(value);
 
-      if (point) {
+      if (
+        point &&
+        point.alphabeticalRank >= deferredVisibleRankStart &&
+        point.alphabeticalRank <= deferredVisibleRankEnd
+      ) {
         points.push(point);
       }
     }
 
     return points;
-  }, [chartData.pointsByValue, deferredVisibleEnd, deferredVisibleStart]);
-  const availableSpan = Math.max(1, availableEnd - availableStart);
+  }, [
+    chartData.pointsByValue,
+    deferredVisibleEnd,
+    deferredVisibleRankEnd,
+    deferredVisibleRankStart,
+    deferredVisibleStart,
+  ]);
   const visibleCount = Math.max(0, visibleEnd - visibleStart + 1);
   const availableCount = Math.max(0, availableEnd - availableStart + 1);
+  const visibleRankCount = Math.max(0, visibleRankEnd - visibleRankStart + 1);
   const { axisPad, marginPad, plotAreaSize } = getPlotLayout(plotSize);
+  const xTrackOffsets = getRangeTrackOffsets(
+    visibleStart,
+    visibleEnd,
+    availableStart,
+    availableEnd,
+  );
+  const yTrackOffsets = getRangeTrackOffsets(
+    visibleRankStart,
+    visibleRankEnd,
+    1,
+    availableCount,
+  );
+  const yTrackStyle = {
+    top: `${yTrackOffsets.endOffset}%`,
+    bottom: `${yTrackOffsets.startOffset}%`,
+  };
   const bandGridLayout = useMemo(
     () => getBandGridLayout(availableCount, plotAreaSize),
     [availableCount, plotAreaSize],
@@ -358,7 +429,10 @@ function App() {
       const outerPadding = viewportWidth <= 720 ? 18 : 28;
       const controlsGap = viewportWidth <= 720 ? 8 : 10;
       const plotShellChrome = viewportWidth <= 720 ? 26 : 34;
-      const availableWidth = viewportWidth - outerPadding * 2;
+      const yRangeWidth = viewportWidth <= 720 ? 66 : 82;
+      const plotMatrixGap = viewportWidth <= 720 ? 8 : 12;
+      const availableWidth =
+        viewportWidth - outerPadding * 2 - yRangeWidth - plotMatrixGap;
       const availableHeight =
         viewportHeight -
         controlsHeight -
@@ -401,10 +475,14 @@ function App() {
   }, []);
 
   const updateAvailableRange = (nextStart: number, nextEnd: number) => {
+    const nextCount = nextEnd - nextStart + 1;
+
     setAvailableStart(nextStart);
     setAvailableEnd(nextEnd);
     setVisibleStart(nextStart);
     setVisibleEnd(nextEnd);
+    setVisibleRankStart(1);
+    setVisibleRankEnd(nextCount);
   };
 
   useEffect(() => {
@@ -421,6 +499,8 @@ function App() {
           availableEnd,
           visibleStart,
           visibleEnd,
+          visibleRankStart,
+          visibleRankEnd,
           pointDisplayMode,
           showEqualityLine,
         } satisfies StoredUserOptions),
@@ -435,6 +515,8 @@ function App() {
     selectedLanguageId,
     showEqualityLine,
     visibleEnd,
+    visibleRankEnd,
+    visibleRankStart,
     visibleStart,
   ]);
 
@@ -704,92 +786,156 @@ function App() {
       </section>
 
       <div className="plot-shell">
-        <div
-          className="plot-frame"
-          style={{ height: `${plotSize}px`, width: `${plotSize}px` }}
-        >
-          <div className="plot-canvas">
+        <div className="plot-matrix">
+          <div className="plot-y-range-shell">
             <div
-              className="plot-grid"
+              className="plot-y-range__rail"
               style={{
-                top: `${marginPad}px`,
-                left: `${axisPad}px`,
-                width: `${plotAreaSize}px`,
+                marginTop: `${marginPad}px`,
                 height: `${plotAreaSize}px`,
               }}
             >
-              <svg
-                aria-hidden="true"
-                className="plot-grid__svg"
-                viewBox={`0 0 ${plotAreaSize} ${plotAreaSize}`}
-              >
-                <path className="plot-grid__path" d={plotGridPath} />
-              </svg>
-            </div>
-            <div className="plot-layer plot-layer--base" ref={basePlotRef} />
-            <div
-              className="plot-layer plot-layer--overlay"
-              ref={overlayPlotRef}
-            />
-          </div>
-        </div>
+              <div className="plot-y-range__labels" aria-hidden="true">
+                <span>{availableCount}</span>
+                <span>
+                  {visibleRankCount} / {availableCount}
+                </span>
+                <span>1</span>
+              </div>
 
-        <div
-          className="plot-range-row"
-          ref={plotRangeRef}
-          style={{ width: `${plotSize}px` }}
-        >
-          <div
-            className="plot-range-shell"
-            style={{
-              marginLeft: `${axisPad}px`,
-              width: `${plotAreaSize}px`,
-            }}
-          >
-            <div className="range-slider" aria-label="Visible range">
               <div
-                className="range-slider__track"
+                className="range-slider range-slider--vertical"
+                aria-label="Visible rank range"
+              >
+                <div
+                  className="range-slider__track range-slider__track--vertical"
+                  style={yTrackStyle}
+                />
+                <input
+                  aria-label="Visible rank start"
+                  className="range-slider__input range-slider__input--vertical"
+                  type="range"
+                  min={1}
+                  max={availableCount}
+                  value={visibleRankStart}
+                  onChange={(event) => {
+                    const nextStart = Math.min(
+                      Number(event.target.value),
+                      visibleRankEnd,
+                    );
+                    setVisibleRankStart(nextStart);
+                  }}
+                />
+                <input
+                  aria-label="Visible rank end"
+                  className="range-slider__input range-slider__input--vertical"
+                  type="range"
+                  min={1}
+                  max={availableCount}
+                  value={visibleRankEnd}
+                  onChange={(event) => {
+                    const nextEnd = Math.max(
+                      Number(event.target.value),
+                      visibleRankStart,
+                    );
+                    setVisibleRankEnd(nextEnd);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="plot-frame"
+            style={{ height: `${plotSize}px`, width: `${plotSize}px` }}
+          >
+            <div className="plot-canvas">
+              <div
+                className="plot-grid"
                 style={{
-                  left: `${((visibleStart - availableStart) / availableSpan) * 100}%`,
-                  right: `${100 - ((visibleEnd - availableStart) / availableSpan) * 100}%`,
+                  top: `${marginPad}px`,
+                  left: `${axisPad}px`,
+                  width: `${plotAreaSize}px`,
+                  height: `${plotAreaSize}px`,
                 }}
-              />
-              <input
-                className="range-slider__input"
-                type="range"
-                min={availableStart}
-                max={availableEnd}
-                value={visibleStart}
-                onChange={(event) => {
-                  const nextStart = Math.min(
-                    Number(event.target.value),
-                    visibleEnd,
-                  );
-                  setVisibleStart(nextStart);
-                }}
-              />
-              <input
-                className="range-slider__input"
-                type="range"
-                min={availableStart}
-                max={availableEnd}
-                value={visibleEnd}
-                onChange={(event) => {
-                  const nextEnd = Math.max(
-                    Number(event.target.value),
-                    visibleStart,
-                  );
-                  setVisibleEnd(nextEnd);
-                }}
+              >
+                <svg
+                  aria-hidden="true"
+                  className="plot-grid__svg"
+                  viewBox={`0 0 ${plotAreaSize} ${plotAreaSize}`}
+                >
+                  <path className="plot-grid__path" d={plotGridPath} />
+                </svg>
+              </div>
+              <div className="plot-layer plot-layer--base" ref={basePlotRef} />
+              <div
+                className="plot-layer plot-layer--overlay"
+                ref={overlayPlotRef}
               />
             </div>
+          </div>
 
-            <div className="plot-range__footer">
-              <span>{availableStart}</span>
-              <span>
-                {visibleCount} / {availableCount} visible
-              </span>
-              <span>{availableEnd}</span>
+          <div className="plot-matrix__spacer" aria-hidden="true" />
+
+          <div
+            className="plot-range-row"
+            ref={plotRangeRef}
+            style={{ width: `${plotSize}px` }}
+          >
+            <div
+              className="plot-range-shell"
+              style={{
+                marginLeft: `${axisPad}px`,
+                width: `${plotAreaSize}px`,
+              }}
+            >
+              <div className="range-slider" aria-label="Visible value range">
+                <div
+                  className="range-slider__track"
+                  style={{
+                    left: `${xTrackOffsets.startOffset}%`,
+                    right: `${xTrackOffsets.endOffset}%`,
+                  }}
+                />
+                <input
+                  aria-label="Visible value start"
+                  className="range-slider__input"
+                  type="range"
+                  min={availableStart}
+                  max={availableEnd}
+                  value={visibleStart}
+                  onChange={(event) => {
+                    const nextStart = Math.min(
+                      Number(event.target.value),
+                      visibleEnd,
+                    );
+                    setVisibleStart(nextStart);
+                  }}
+                />
+                <input
+                  aria-label="Visible value end"
+                  className="range-slider__input"
+                  type="range"
+                  min={availableStart}
+                  max={availableEnd}
+                  value={visibleEnd}
+                  onChange={(event) => {
+                    const nextEnd = Math.max(
+                      Number(event.target.value),
+                      visibleStart,
+                    );
+                    setVisibleEnd(nextEnd);
+                  }}
+                />
+              </div>
+
+              <div className="plot-range__footer">
+                <span>{availableStart}</span>
+                <span>
+                  {visibleCount} / {availableCount} visible
+                </span>
+                <span>{availableEnd}</span>
+              </div>
             </div>
           </div>
         </div>

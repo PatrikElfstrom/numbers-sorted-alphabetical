@@ -136,6 +136,31 @@
   transform: translateY(-50%);
 }
 
+.range-slider--vertical {
+  width: 2rem;
+  height: 100%;
+}
+
+.range-slider--vertical::before {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  right: auto;
+  width: 0.24rem;
+  height: auto;
+  transform: translateX(-50%);
+}
+
+.range-slider__track--vertical {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0.24rem;
+  height: auto;
+  background: linear-gradient(180deg, #8f7dff, #69b9ff);
+  transform: translateX(-50%);
+}
+
 .range-slider__input {
   position: absolute;
   inset: 0;
@@ -177,6 +202,14 @@
 .range-slider__input::-moz-range-track {
   height: 100%;
   background: transparent;
+}
+
+.range-slider__input--vertical {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
 }
 
 .control-note {
@@ -302,9 +335,52 @@
   z-index: 1;
 }
 
+.plot-matrix {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.75rem;
+  row-gap: 0.7rem;
+  align-items: start;
+}
+
+.plot-matrix__spacer {
+  width: 100%;
+}
+
 .plot-range-row {
   position: relative;
   z-index: 1;
+}
+
+.plot-y-range-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.plot-y-range__rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.plot-y-range__labels {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: end;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.72rem;
+}
+
+.plot-y-range__labels span {
+  color: rgba(232, 237, 255, 0.6);
+}
+
+.plot-y-range__labels span:nth-child(2) {
+  color: rgba(232, 237, 255, 0.82);
+  text-align: right;
 }
 
 .plot-range-shell {
@@ -408,6 +484,20 @@
   .plot-shell {
     padding: 0.4rem 0.4rem 0.3rem;
     border-radius: 18px;
+  }
+
+  .plot-matrix {
+    column-gap: 0.5rem;
+    row-gap: 0.55rem;
+  }
+
+  .plot-y-range__rail {
+    gap: 0.24rem;
+  }
+
+  .plot-y-range__labels {
+    font-size: 0.66rem;
+    gap: 0.3rem;
   }
 
   .plot-range-shell {
