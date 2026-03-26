@@ -298,12 +298,12 @@ function buildChartData(
     yTicks.push(count);
   }
 
-  const equalityStart = Math.max(rangeStart, 0);
-  const equalityEnd = Math.min(rangeEnd, count - 1);
+  const equalityStart = rangeStart;
+  const equalityEnd = rangeEnd;
   const equalityPoints =
     equalityStart <= equalityEnd
       ? d3.range(equalityStart, equalityEnd + 1).map((value: number) => ({
-          alphabeticalRank: value + 1,
+          alphabeticalRank: value - rangeStart + 1,
           value,
         }))
       : [];
@@ -358,6 +358,12 @@ function App() {
     initialUserOptions?.showEqualityLine ?? false,
   );
   const selectedLanguage = numberLanguageById[selectedLanguageId];
+  const guideFormulaLabel =
+    availableStart === 0
+      ? "Guide y=x+1"
+      : availableStart === 1
+        ? "Guide y=x"
+        : `Guide y=x-${availableStart - 1}`;
 
   const chartData = useMemo(
     () => buildChartData(availableStart, availableEnd, selectedLanguageId),
@@ -798,8 +804,8 @@ function App() {
               <span className="toggle-switch__thumb" />
             </span>
             <span className="toggle-switch__copy">
-              <strong>Guide y=x+1</strong>
-              <small>1-based rank line</small>
+              <strong>{guideFormulaLabel}</strong>
+              <small>1-based line for current range</small>
             </span>
           </label>
         </div>
