@@ -6,6 +6,7 @@ import type {
 import { type LanguageId } from "../../numberLanguages";
 import { clampNumber, getRangeCount } from "../rangeUtils";
 import {
+  ensureHiddenLanguageIds,
   ensureSelectedLanguageIds,
   normalizeAvailableRange,
 } from "./shared";
@@ -14,6 +15,10 @@ export type AppOptionsAction =
   | {
       type: "setSelectedLanguageIds";
       selectedLanguageIds: LanguageId[];
+    }
+  | {
+      type: "toggleHiddenLanguageId";
+      languageId: LanguageId;
     }
   | {
       type: "setPointDisplayMode";
@@ -49,11 +54,37 @@ export function appOptionsReducer(
   action: AppOptionsAction,
 ): AppOptions {
   switch (action.type) {
-    case "setSelectedLanguageIds":
+    case "setSelectedLanguageIds": {
+      const selectedLanguageIds = ensureSelectedLanguageIds(
+        action.selectedLanguageIds,
+      );
+
       return {
         ...state,
-        selectedLanguageIds: ensureSelectedLanguageIds(action.selectedLanguageIds),
+        selectedLanguageIds,
+        hiddenLanguageIds: ensureHiddenLanguageIds(
+          state.hiddenLanguageIds,
+          selectedLanguageIds,
+        ),
       };
+    }
+
+    case "toggleHiddenLanguageId": {
+      if (!state.selectedLanguageIds.includes(action.languageId)) {
+        return state;
+      }
+
+      const hiddenLanguageIds = state.hiddenLanguageIds.includes(action.languageId)
+        ? state.hiddenLanguageIds.filter(
+            (languageId) => languageId !== action.languageId,
+          )
+        : [...state.hiddenLanguageIds, action.languageId];
+
+      return {
+        ...state,
+        hiddenLanguageIds,
+      };
+    }
 
     case "setPointDisplayMode":
       return {

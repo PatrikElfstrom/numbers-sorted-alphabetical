@@ -128,9 +128,9 @@ export function MultiSelectCombobox({
                     onClick={() => {
                       onValueChange(
                         getToggleAllValues({
-                        currentValues: value,
-                        minSelected,
-                        optionValues,
+                          currentValues: value,
+                          minSelected,
+                          optionValues,
                         }),
                       );
                     }}

@@ -9,6 +9,7 @@ export type PointDisplayMode = "auto" | "cells" | "squares";
 
 export type AppOptions = {
   selectedLanguageIds: LanguageId[];
+  hiddenLanguageIds: LanguageId[];
   availableRange: NumberRange;
   visibleValueRange: NumberRange;
   visibleRankRange: NumberRange;

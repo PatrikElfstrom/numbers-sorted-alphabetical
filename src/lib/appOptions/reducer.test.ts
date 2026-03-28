@@ -68,5 +68,38 @@ describe("appOptionsReducer", () => {
     });
 
     expect(nextState.selectedLanguageIds).toEqual([]);
+    expect(nextState.hiddenLanguageIds).toEqual([]);
+  });
+
+  it("toggles language visibility without removing the selection", () => {
+    const hiddenState = appOptionsReducer(defaultAppOptions, {
+      type: "toggleHiddenLanguageId",
+      languageId: defaultAppOptions.selectedLanguageIds[0],
+    });
+    const visibleState = appOptionsReducer(hiddenState, {
+      type: "toggleHiddenLanguageId",
+      languageId: defaultAppOptions.selectedLanguageIds[0],
+    });
+
+    expect(hiddenState.selectedLanguageIds).toEqual(
+      defaultAppOptions.selectedLanguageIds,
+    );
+    expect(hiddenState.hiddenLanguageIds).toEqual(
+      defaultAppOptions.selectedLanguageIds,
+    );
+    expect(visibleState.hiddenLanguageIds).toEqual([]);
+  });
+
+  it("drops hidden languages when they are removed from the selection", () => {
+    const hiddenState = appOptionsReducer(defaultAppOptions, {
+      type: "toggleHiddenLanguageId",
+      languageId: defaultAppOptions.selectedLanguageIds[0],
+    });
+    const nextState = appOptionsReducer(hiddenState, {
+      type: "setSelectedLanguageIds",
+      selectedLanguageIds: [],
+    });
+
+    expect(nextState.hiddenLanguageIds).toEqual([]);
   });
 });

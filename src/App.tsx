@@ -18,15 +18,22 @@ function App() {
     setPointDisplayMode,
     setSelectedLanguageIds,
     setShowEqualityLine,
+    toggleHiddenLanguageId,
     setVisibleRankRangeEnd,
     setVisibleRankRangeStart,
     setVisibleValueRangeEnd,
     setVisibleValueRangeStart,
     updateAvailableRange,
   } = useAppPreferences();
-  const deferredVisibleValueStart = useDeferredValue(options.visibleValueRange.start);
-  const deferredVisibleValueEnd = useDeferredValue(options.visibleValueRange.end);
-  const deferredVisibleRankStart = useDeferredValue(options.visibleRankRange.start);
+  const deferredVisibleValueStart = useDeferredValue(
+    options.visibleValueRange.start,
+  );
+  const deferredVisibleValueEnd = useDeferredValue(
+    options.visibleValueRange.end,
+  );
+  const deferredVisibleRankStart = useDeferredValue(
+    options.visibleRankRange.start,
+  );
   const deferredVisibleRankEnd = useDeferredValue(options.visibleRankRange.end);
 
   const chartData = useMemo(
@@ -38,10 +45,16 @@ function App() {
       buildLanguageSeries(options.availableRange, options.selectedLanguageIds),
     [options.availableRange, options.selectedLanguageIds],
   );
+  const hiddenLanguageIdSet = useMemo(
+    () => new Set(options.hiddenLanguageIds),
+    [options.hiddenLanguageIds],
+  );
   const visibleLanguageSeries = useMemo(
     () =>
       selectVisibleLanguageSeries(
-        languageSeries,
+        languageSeries.filter(
+          (series) => !hiddenLanguageIdSet.has(series.languageId),
+        ),
         {
           start: deferredVisibleValueStart,
           end: deferredVisibleValueEnd,
@@ -56,6 +69,7 @@ function App() {
       deferredVisibleRankStart,
       deferredVisibleValueEnd,
       deferredVisibleValueStart,
+      hiddenLanguageIdSet,
       languageSeries,
     ],
   );
@@ -73,6 +87,7 @@ function App() {
         selectedLanguageColorById={selectedLanguageColorById}
         setPointDisplayMode={setPointDisplayMode}
         setSelectedLanguageIds={setSelectedLanguageIds}
+        toggleHiddenLanguageId={toggleHiddenLanguageId}
         updateAvailableRange={updateAvailableRange}
       />
       <PlotPanel

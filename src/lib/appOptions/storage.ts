@@ -3,6 +3,7 @@ import { type LanguageId, resolveLanguageId } from "../../numberLanguages";
 import { clampNumber, getRangeCount } from "../rangeUtils";
 import {
   defaultAvailableRange,
+  ensureHiddenLanguageIds,
   ensureSelectedLanguageIds,
   getDefaultAppOptions,
   normalizeAvailableRange,
@@ -13,6 +14,7 @@ export type StorageLike = Pick<Storage, "getItem" | "setItem">;
 
 type StoredUserOptions = {
   selectedLanguageIds?: unknown;
+  hiddenLanguageIds?: unknown;
   availableStart?: unknown;
   availableEnd?: unknown;
   visibleStart?: unknown;
@@ -92,6 +94,10 @@ export function loadStoredAppOptions(
           getStoredLanguageIds(parsedOptions.selectedLanguageIds),
         )
       : getDefaultAppOptions().selectedLanguageIds;
+    const hiddenLanguageIds = ensureHiddenLanguageIds(
+      getStoredLanguageIds(parsedOptions.hiddenLanguageIds),
+      selectedLanguageIds,
+    );
     const availableRange = normalizeAvailableRange({
       start: getStoredNumber(
         parsedOptions.availableStart,
@@ -130,6 +136,7 @@ export function loadStoredAppOptions(
 
     return {
       selectedLanguageIds,
+      hiddenLanguageIds,
       availableRange,
       visibleValueRange,
       visibleRankRange,
@@ -146,6 +153,7 @@ export function loadStoredAppOptions(
 export function serializeAppOptions(options: AppOptions): StoredUserOptions {
   return {
     selectedLanguageIds: options.selectedLanguageIds,
+    hiddenLanguageIds: options.hiddenLanguageIds,
     availableStart: options.availableRange.start,
     availableEnd: options.availableRange.end,
     visibleStart: options.visibleValueRange.start,

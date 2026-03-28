@@ -54,21 +54,17 @@ export function getAvailableRangeFromEndInput(
   };
 }
 
-export function getLanguageRemovalState(
-  selectedLanguageCount: number,
-  languageLabel: string,
-): {
-  ariaLabel: string;
-  canRemove: boolean;
-  removeText: string;
-} {
-  const canRemove = selectedLanguageCount > 0;
+export function getLanguageRemovalLabel(languageLabel: string): string {
+  return `Remove ${languageLabel}`;
+}
 
-  return {
-    ariaLabel: `Remove ${languageLabel}`,
-    canRemove,
-    removeText: canRemove ? "x" : "",
-  };
+export function getLanguageVisibilityLabel(
+  isHidden: boolean,
+  languageLabel: string,
+): string {
+  return isHidden
+    ? `Show ${languageLabel} on graph`
+    : `Hide ${languageLabel} from graph`;
 }
 
 export function removeSelectedLanguage(

@@ -26,6 +26,12 @@ export function useAppPreferences() {
         selectedLanguageIds,
       });
     },
+    toggleHiddenLanguageId(languageId: LanguageId) {
+      dispatch({
+        type: "toggleHiddenLanguageId",
+        languageId,
+      });
+    },
     setPointDisplayMode(pointDisplayMode: PointDisplayMode) {
       dispatch({
         type: "setPointDisplayMode",

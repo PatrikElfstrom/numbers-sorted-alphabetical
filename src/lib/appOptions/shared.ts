@@ -34,12 +34,29 @@ export function ensureSelectedLanguageIds(
   return Array.from(new Set(nextSelectedLanguageIds.filter(isLanguageId)));
 }
 
+export function ensureHiddenLanguageIds(
+  nextHiddenLanguageIds: LanguageId[],
+  selectedLanguageIds: LanguageId[],
+): LanguageId[] {
+  const selectedLanguageIdSet = new Set(selectedLanguageIds);
+
+  return Array.from(
+    new Set(
+      nextHiddenLanguageIds.filter(
+        (languageId) =>
+          isLanguageId(languageId) && selectedLanguageIdSet.has(languageId),
+      ),
+    ),
+  );
+}
+
 export function getDefaultAppOptions(): AppOptions {
   const availableRange = { ...defaultAvailableRange };
   const availableCount = getRangeCount(availableRange);
 
   return {
     selectedLanguageIds: [defaultLanguageId],
+    hiddenLanguageIds: [],
     availableRange,
     visibleValueRange: { ...availableRange },
     visibleRankRange: {

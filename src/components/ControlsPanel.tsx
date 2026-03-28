@@ -5,7 +5,8 @@ import {
   getAvailableRangeFromEndInput,
   getAvailableRangeFromStartInput,
   getLanguageOptions,
-  getLanguageRemovalState,
+  getLanguageRemovalLabel,
+  getLanguageVisibilityLabel,
   removeSelectedLanguage,
 } from "../lib/controlsPanel";
 import { maxAvailableValue, minAvailableStart } from "../lib/appOptions";
@@ -20,6 +21,7 @@ type ControlsPanelProps = {
   selectedLanguageColorById: Map<LanguageId, string>;
   setPointDisplayMode: (pointDisplayMode: PointDisplayMode) => void;
   setSelectedLanguageIds: (selectedLanguageIds: LanguageId[]) => void;
+  toggleHiddenLanguageId: (languageId: LanguageId) => void;
   updateAvailableRange: (availableRange: NumberRange) => void;
 };
 
@@ -30,11 +32,16 @@ export function ControlsPanel({
   selectedLanguageColorById,
   setPointDisplayMode,
   setSelectedLanguageIds,
+  toggleHiddenLanguageId,
   updateAvailableRange,
 }: ControlsPanelProps) {
   const languageOptions = useMemo(
     () => getLanguageOptions(selectedLanguageColorById),
     [selectedLanguageColorById],
+  );
+  const hiddenLanguageIdSet = useMemo(
+    () => new Set(options.hiddenLanguageIds),
+    [options.hiddenLanguageIds],
   );
 
   return (
@@ -111,42 +118,54 @@ export function ControlsPanel({
 
       <div className="language-legend" aria-label="Selected language overlays">
         {languageSeries.map((series) => {
-          const removalState = getLanguageRemovalState(
-            options.selectedLanguageIds.length,
-            series.languageLabel,
-          );
+          const isHidden = hiddenLanguageIdSet.has(series.languageId);
 
           return (
-            <button
-              aria-label={removalState.ariaLabel}
-              className="language-legend__item"
-              disabled={!removalState.canRemove}
+            <div
+              className={
+                isHidden
+                  ? "language-legend__item language-legend__item--hidden"
+                  : "language-legend__item"
+              }
               key={series.languageId}
-              onClick={() => {
-                if (!removalState.canRemove) {
-                  return;
-                }
-
-                setSelectedLanguageIds(
-                  removeSelectedLanguage(
-                    options.selectedLanguageIds,
-                    series.languageId,
-                  ),
-                );
-              }}
               style={{ "--language-color": series.color } as CSSProperties}
-              type="button"
             >
-              <span aria-hidden="true" className="language-legend__swatch" />
-              {series.languageLabel}
-              <span className="language-legend__remove" aria-hidden="true">
-                {removalState.removeText}
-              </span>
-            </button>
+              <button
+                aria-label={getLanguageVisibilityLabel(
+                  isHidden,
+                  series.languageLabel,
+                )}
+                aria-pressed={!isHidden}
+                className="language-legend__toggle"
+                onClick={() => {
+                  toggleHiddenLanguageId(series.languageId);
+                }}
+                type="button"
+              >
+                <span aria-hidden="true" className="language-legend__swatch" />
+                <span className="language-legend__label">
+                  {series.languageLabel}
+                </span>
+              </button>
+              <button
+                aria-label={getLanguageRemovalLabel(series.languageLabel)}
+                className="language-legend__remove"
+                onClick={() => {
+                  setSelectedLanguageIds(
+                    removeSelectedLanguage(
+                      options.selectedLanguageIds,
+                      series.languageId,
+                    ),
+                  );
+                }}
+                type="button"
+              >
+                x
+              </button>
+            </div>
           );
         })}
       </div>
-
     </section>
   );
 }

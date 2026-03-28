@@ -37,6 +37,7 @@ describe("loadStoredAppOptions", () => {
 
     expect(loadStoredAppOptions(storage)).toEqual({
       selectedLanguageIds: [resolveLanguageId("sv-SE")],
+      hiddenLanguageIds: [],
       availableRange: {
         start: 0,
         end: 5000,
@@ -64,6 +65,7 @@ describe("loadStoredAppOptions", () => {
     expect(loadStoredAppOptions(storage).selectedLanguageIds).toEqual([
       resolveLanguageId("en-US"),
     ]);
+    expect(loadStoredAppOptions(storage).hiddenLanguageIds).toEqual([]);
   });
 
   it("preserves an explicit empty language selection", () => {
@@ -74,5 +76,19 @@ describe("loadStoredAppOptions", () => {
     );
 
     expect(loadStoredAppOptions(storage).selectedLanguageIds).toEqual([]);
+    expect(loadStoredAppOptions(storage).hiddenLanguageIds).toEqual([]);
+  });
+
+  it("keeps hidden languages only when they are still selected", () => {
+    const storage = createStorage(
+      JSON.stringify({
+        selectedLanguageIds: ["sv-SE", "en-US"],
+        hiddenLanguageIds: ["en-US", "fr-FR"],
+      }),
+    );
+
+    expect(loadStoredAppOptions(storage).hiddenLanguageIds).toEqual([
+      resolveLanguageId("en-US"),
+    ]);
   });
 });
