@@ -32,10 +32,6 @@ const languageColorPalette = [
   "#7dd3fc",
   "#f9a8d4",
 ];
-const languageListFormatter = new Intl.ListFormat("en", {
-  style: "long",
-  type: "conjunction",
-});
 
 function getTickStep(maxValue: number): number {
   const roughStep = Math.max(1, Math.ceil(maxValue / 10));
@@ -159,14 +155,6 @@ export function selectVisibleLanguageSeries(
       visiblePoints,
     };
   });
-}
-
-export function getSelectedLanguageSummary(
-  languageSeries: LanguageSeries[],
-): string {
-  return languageListFormatter.format(
-    languageSeries.map((series) => series.languageLabel.toLowerCase()),
-  );
 }
 
 export function getSelectedLanguageColorById(

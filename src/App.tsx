@@ -8,7 +8,6 @@ import {
   buildChartData,
   buildLanguageSeries,
   getSelectedLanguageColorById,
-  getSelectedLanguageSummary,
   selectVisibleLanguageSeries,
 } from "./lib/chartData";
 
@@ -60,10 +59,6 @@ function App() {
       languageSeries,
     ],
   );
-  const selectedLanguageSummary = useMemo(
-    () => getSelectedLanguageSummary(languageSeries),
-    [languageSeries],
-  );
   const selectedLanguageColorById = useMemo(
     () => getSelectedLanguageColorById(languageSeries),
     [languageSeries],
@@ -76,7 +71,6 @@ function App() {
         languageSeries={languageSeries}
         options={options}
         selectedLanguageColorById={selectedLanguageColorById}
-        selectedLanguageSummary={selectedLanguageSummary}
         setPointDisplayMode={setPointDisplayMode}
         setSelectedLanguageIds={setSelectedLanguageIds}
         updateAvailableRange={updateAvailableRange}

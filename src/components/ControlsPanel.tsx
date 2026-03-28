@@ -18,7 +18,6 @@ type ControlsPanelProps = {
   languageSeries: LanguageSeries[];
   options: AppOptions;
   selectedLanguageColorById: Map<LanguageId, string>;
-  selectedLanguageSummary: string;
   setPointDisplayMode: (pointDisplayMode: PointDisplayMode) => void;
   setSelectedLanguageIds: (selectedLanguageIds: LanguageId[]) => void;
   updateAvailableRange: (availableRange: NumberRange) => void;
@@ -29,7 +28,6 @@ export function ControlsPanel({
   languageSeries,
   options,
   selectedLanguageColorById,
-  selectedLanguageSummary,
   setPointDisplayMode,
   setSelectedLanguageIds,
   updateAvailableRange,
@@ -149,10 +147,6 @@ export function ControlsPanel({
         })}
       </div>
 
-      <p className="control-note">
-        Alphabetical positions are recalculated for {selectedLanguageSummary} and
-        overlaid on the same grid.
-      </p>
     </section>
   );
 }

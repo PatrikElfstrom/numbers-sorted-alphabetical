@@ -11,7 +11,6 @@ export {
   buildLanguageChartData,
   buildLanguageSeries,
   getSelectedLanguageColorById,
-  getSelectedLanguageSummary,
   selectVisibleLanguageSeries,
 } from "./series";
 export type {
