@@ -8,6 +8,7 @@ import {
   type LanguageId,
 } from "../../numberLanguages";
 import { getRangeCount } from "../rangeUtils";
+import { formatPointTitleEntries } from "./labels";
 import type {
   ChartData,
   LanguageChartData,
@@ -135,7 +136,7 @@ export function selectVisibleLanguageSeries(
   visibleValueRange: NumberRange,
   visibleRankRange: NumberRange,
 ): VisibleLanguageSeries[] {
-  return languageSeries.map((series) => {
+  const visibleLanguageSeries = languageSeries.map((series) => {
     const visiblePoints: NumberPoint[] = [];
 
     for (let value = visibleValueRange.start; value <= visibleValueRange.end; value += 1) {
@@ -155,6 +156,31 @@ export function selectVisibleLanguageSeries(
       visiblePoints,
     };
   });
+
+  const pointsByCoordinate = new Map<string, NumberPoint[]>();
+
+  for (const series of visibleLanguageSeries) {
+    for (const point of series.visiblePoints) {
+      const coordinateKey = `${point.value}:${point.alphabeticalRank}`;
+      const coordinatePoints = pointsByCoordinate.get(coordinateKey);
+
+      if (coordinatePoints) {
+        coordinatePoints.push(point);
+      } else {
+        pointsByCoordinate.set(coordinateKey, [point]);
+      }
+    }
+  }
+
+  return visibleLanguageSeries.map((series) => ({
+    ...series,
+    visiblePoints: series.visiblePoints.map((point) => ({
+      ...point,
+      hoverTitle: formatPointTitleEntries(
+        pointsByCoordinate.get(`${point.value}:${point.alphabeticalRank}`) ?? [point],
+      ),
+    })),
+  }));
 }
 
 export function getSelectedLanguageColorById(

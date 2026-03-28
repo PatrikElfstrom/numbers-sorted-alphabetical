@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveLanguageId } from "../../numberLanguages";
+import type { LanguageSeries } from "./types";
 import {
   buildChartData,
   buildLanguageSeries,
@@ -72,5 +73,69 @@ describe("selectVisibleLanguageSeries", () => {
           point.alphabeticalRank <= 5,
       ),
     ).toBe(true);
+  });
+
+  it("shares one hover label across languages that occupy the same coordinate", () => {
+    const englishId = resolveLanguageId("en-US") ?? "en-US";
+    const swedishId = resolveLanguageId("sv-SE") ?? "sv-SE";
+    const languageSeries: LanguageSeries[] = [
+      {
+        chartData: {
+          pointsByValue: new Map([
+            [
+              2,
+              {
+                alphabeticalRank: 3,
+                languageId: englishId,
+                languageLabel: "English",
+                name: "two",
+                value: 2,
+              },
+            ],
+          ]),
+        },
+        color: "#67e8f9",
+        languageId: englishId,
+        languageLabel: "English",
+      },
+      {
+        chartData: {
+          pointsByValue: new Map([
+            [
+              2,
+              {
+                alphabeticalRank: 3,
+                languageId: swedishId,
+                languageLabel: "Swedish",
+                name: "tva",
+                value: 2,
+              },
+            ],
+          ]),
+        },
+        color: "#fbbf24",
+        languageId: swedishId,
+        languageLabel: "Swedish",
+      },
+    ];
+
+    const visibleLanguageSeries = selectVisibleLanguageSeries(
+      languageSeries,
+      {
+        start: 2,
+        end: 2,
+      },
+      {
+        start: 3,
+        end: 3,
+      },
+    );
+
+    expect(visibleLanguageSeries[0].visiblePoints[0].hoverTitle).toBe(
+      "English: two\nSwedish: tva\nValue: 2\nPosition: 3",
+    );
+    expect(visibleLanguageSeries[1].visiblePoints[0].hoverTitle).toBe(
+      "English: two\nSwedish: tva\nValue: 2\nPosition: 3",
+    );
   });
 });

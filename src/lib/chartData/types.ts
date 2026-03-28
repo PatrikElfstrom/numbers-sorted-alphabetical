@@ -2,6 +2,7 @@ import type { LanguageId } from "../../numberLanguages";
 
 export type NumberPoint = {
   alphabeticalRank: number;
+  hoverTitle?: string;
   languageId: LanguageId;
   languageLabel: string;
   name: string;

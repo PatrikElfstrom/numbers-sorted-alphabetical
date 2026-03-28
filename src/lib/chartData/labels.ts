@@ -13,5 +13,13 @@ export function getGuideFormulaLabel(availableStart: number): string {
 }
 
 export function getPointTitle(entry: NumberPoint): string {
-  return `${entry.languageLabel}: ${entry.name}\nValue: ${entry.value}\nPosition: ${entry.alphabeticalRank}`;
+  return entry.hoverTitle ?? formatPointTitleEntries([entry]);
+}
+
+export function formatPointTitleEntries(entries: NumberPoint[]): string {
+  const [firstEntry] = entries;
+
+  return `${entries
+    .map((entry) => `${entry.languageLabel}: ${entry.name}`)
+    .join("\n")}\nValue: ${firstEntry.value}\nPosition: ${firstEntry.alphabeticalRank}`;
 }

@@ -19,7 +19,7 @@ type EqualityPlotParams = BasePlotParams & {
 
 type LanguageSeriesPlotParams = BasePlotParams & {
   pointRendering: PointRendering;
-  visibleLanguageSeries: VisibleLanguageSeries;
+  visibleLanguageSeries: VisibleLanguageSeries[];
 };
 
 function createVisiblePointMark(
@@ -195,7 +195,9 @@ export function createLanguageSeriesPlot({
       round: false,
       reverse: true,
     },
-    marks: [createVisiblePointMark(visibleLanguageSeries, pointRendering)],
+    marks: visibleLanguageSeries.map((series) =>
+      createVisiblePointMark(series, pointRendering),
+    ),
   });
 }
 

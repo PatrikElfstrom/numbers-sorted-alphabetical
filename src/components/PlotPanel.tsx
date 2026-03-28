@@ -35,7 +35,7 @@ type PlotLanguageLayerProps = {
   plotSize: number;
   pointRendering: PointRendering;
   transition: typeof plotSeriesTransition | { duration: number };
-  visibleLanguageSeries: VisibleLanguageSeries;
+  visibleLanguageSeries: VisibleLanguageSeries[];
 };
 
 function PlotLanguageLayer({
@@ -86,6 +86,10 @@ function PlotLanguageLayer({
   );
 }
 
+function buildVisibleSeriesKey(visibleLanguageSeries: VisibleLanguageSeries[]): string {
+  return visibleLanguageSeries.map((series) => series.languageId).join("|");
+}
+
 export function PlotPanel({
   chartData,
   options,
@@ -111,6 +115,10 @@ export function PlotPanel({
   const seriesTransition = prefersReducedMotion
     ? { duration: 0 }
     : plotSeriesTransition;
+  const visibleSeriesKey = useMemo(
+    () => buildVisibleSeriesKey(visibleLanguageSeries),
+    [visibleLanguageSeries],
+  );
 
   return (
     <div className="plot-shell">
@@ -178,17 +186,17 @@ export function PlotPanel({
             <div className="plot-layer plot-layer--base" ref={basePlotRef} />
             <div className="plot-layer plot-layer--overlay" ref={equalityPlotRef} />
             <AnimatePresence initial={false}>
-              {visibleLanguageSeries.map((series) => (
+              {visibleLanguageSeries.length > 0 ? (
                 <PlotLanguageLayer
                   chartData={chartData}
-                  key={series.languageId}
+                  key={visibleSeriesKey}
                   layout={viewModel.layout}
                   plotSize={plotSize}
                   pointRendering={viewModel.pointRendering}
                   transition={seriesTransition}
-                  visibleLanguageSeries={series}
+                  visibleLanguageSeries={visibleLanguageSeries}
                 />
-              ))}
+              ) : null}
             </AnimatePresence>
           </div>
         </div>

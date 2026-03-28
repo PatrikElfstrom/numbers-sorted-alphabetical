@@ -5,7 +5,7 @@ export {
   getPointRendering,
   getRangeTrackOffsets,
 } from "./layout";
-export { getGuideFormulaLabel, getPointTitle } from "./labels";
+export { formatPointTitleEntries, getGuideFormulaLabel, getPointTitle } from "./labels";
 export {
   buildChartData,
   buildLanguageChartData,
