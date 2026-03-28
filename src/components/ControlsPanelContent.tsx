@@ -1,5 +1,11 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { type CSSProperties, useMemo } from "react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+} from "motion/react";
+import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 import type { AppOptions, NumberRange, PointDisplayMode } from "../app/types";
 import { maxAvailableValue, minAvailableStart } from "../lib/appOptions";
 import { getGuideFormulaLabel, type LanguageSeries } from "../lib/chartData";
@@ -48,10 +54,22 @@ const legendItemTransition = {
   ease: [0.22, 1, 0.36, 1],
 } as const;
 
+const floatingPositionTransition = {
+  duration: 0.24,
+  ease: [0.22, 1, 0.36, 1],
+} as const;
+
+type FloatingPosition = {
+  left: number;
+  position: CSSProperties["position"];
+  top: number;
+};
+
 type ControlsPanelContentProps = {
   controlsBodyId: string;
   floatingRef: (node: HTMLElement | null) => void;
-  floatingStyle: CSSProperties;
+  floatingPlacement: string;
+  floatingPosition: FloatingPosition | null;
   languageSeries: LanguageSeries[];
   options: AppOptions;
   panelAlignment: "left" | "right";
@@ -67,7 +85,8 @@ type ControlsPanelContentProps = {
 export function ControlsPanelContent({
   controlsBodyId,
   floatingRef,
-  floatingStyle,
+  floatingPlacement,
+  floatingPosition,
   languageSeries,
   options,
   panelAlignment,
@@ -93,6 +112,12 @@ export function ControlsPanelContent({
   const activePointDisplayModeIndex = pointDisplayModeOptions.findIndex(
     (option) => option.value === options.pointDisplayMode,
   );
+  const previousFloatingPlacementRef = useRef(floatingPlacement);
+  const previousFloatingPositionRef = useRef<FloatingPosition | null>(null);
+  const floatingFlipOffsetX = useMotionValue(0);
+  const floatingFlipOffsetY = useMotionValue(0);
+  const floatingFlipAnimationXRef = useRef<ReturnType<typeof animate> | null>(null);
+  const floatingFlipAnimationYRef = useRef<ReturnType<typeof animate> | null>(null);
   const panelMotion = prefersReducedMotion
     ? {
         animate: { opacity: 1 },
@@ -132,14 +157,72 @@ export function ControlsPanelContent({
         animate: { opacity: 1, y: 0 },
         initial: { opacity: 0, y: 8 },
       };
+  useEffect(() => {
+    if (floatingPosition === null) {
+      previousFloatingPlacementRef.current = floatingPlacement;
+      previousFloatingPositionRef.current = null;
+      floatingFlipAnimationXRef.current?.stop();
+      floatingFlipAnimationYRef.current?.stop();
+      floatingFlipOffsetX.set(0);
+      floatingFlipOffsetY.set(0);
+      return;
+    }
+
+    const previousFloatingPosition = previousFloatingPositionRef.current;
+    const placementChanged =
+      previousFloatingPlacementRef.current !== floatingPlacement;
+
+    if (placementChanged && previousFloatingPosition !== null) {
+      floatingFlipAnimationXRef.current?.stop();
+      floatingFlipAnimationYRef.current?.stop();
+
+      floatingFlipOffsetX.set(
+        previousFloatingPosition.left - floatingPosition.left,
+      );
+      floatingFlipOffsetY.set(
+        previousFloatingPosition.top - floatingPosition.top,
+      );
+
+      if (prefersReducedMotion) {
+        floatingFlipOffsetX.set(0);
+        floatingFlipOffsetY.set(0);
+      } else {
+        floatingFlipAnimationXRef.current = animate(
+          floatingFlipOffsetX,
+          0,
+          floatingPositionTransition,
+        );
+        floatingFlipAnimationYRef.current = animate(
+          floatingFlipOffsetY,
+          0,
+          floatingPositionTransition,
+        );
+      }
+    }
+
+    previousFloatingPlacementRef.current = floatingPlacement;
+    previousFloatingPositionRef.current = floatingPosition;
+  }, [
+    floatingFlipOffsetX,
+    floatingFlipOffsetY,
+    floatingPlacement,
+    floatingPosition,
+    prefersReducedMotion,
+  ]);
 
   return (
     <div
       className="controls-shell__floating-layer"
       ref={floatingRef}
-      style={floatingStyle}
+      style={{
+        left: floatingPosition?.left ?? 0,
+        position: floatingPosition?.position ?? "fixed",
+        top: floatingPosition?.top ?? 0,
+        visibility: floatingPosition === null ? "hidden" : "visible",
+      }}
     >
-      <motion.section
+      <motion.div style={{ x: floatingFlipOffsetX, y: floatingFlipOffsetY }}>
+        <motion.section
         animate={panelMotion.animate}
         className={
           panelAlignment === "right"
@@ -426,7 +509,8 @@ export function ControlsPanelContent({
             </div>
           </motion.section>
         </div>
-      </motion.section>
+        </motion.section>
+      </motion.div>
     </div>
   );
 }

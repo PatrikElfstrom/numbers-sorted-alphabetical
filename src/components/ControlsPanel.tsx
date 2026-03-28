@@ -52,7 +52,8 @@ export function ControlsPanel({
   const floatingToggleRef = useRef<HTMLButtonElement | null>(null);
   const {
     dragControls,
-    floatingStyles,
+    floatingPlacement,
+    floatingPosition,
     handleButtonPointerDown,
     handleDrag,
     handleDragEnd,
@@ -169,7 +170,8 @@ export function ControlsPanel({
               floatingPanelRef.current = node;
               setFloating(node);
             }}
-            floatingStyle={floatingStyles}
+            floatingPlacement={floatingPlacement}
+            floatingPosition={floatingPosition}
             languageSeries={languageSeries}
             options={options}
             panelAlignment={panelAlignment}

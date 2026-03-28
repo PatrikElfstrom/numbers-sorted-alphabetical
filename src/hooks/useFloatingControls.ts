@@ -51,8 +51,10 @@ export function useFloatingControls({
   const {
     placement,
     refs: floatingRefs,
-    floatingStyles,
+    strategy,
     update,
+    x: floatingX,
+    y: floatingY,
   } = useFloating({
     middleware: [
       offset(10),
@@ -77,6 +79,7 @@ export function useFloatingControls({
     open: !controlsMinimized,
     placement: "bottom-end",
     strategy: "fixed",
+    transform: false,
     whileElementsMounted(reference, floating, updatePosition) {
       return autoUpdate(reference, floating, updatePosition, {
         animationFrame: true,
@@ -140,7 +143,15 @@ export function useFloatingControls({
 
   return {
     dragControls,
-    floatingStyles,
+    floatingPosition:
+      floatingX === null || floatingY === null
+        ? null
+        : {
+            left: floatingX,
+            position: strategy,
+            top: floatingY,
+          },
+    floatingPlacement: placement,
     panelAlignment: getPanelAlignment(placement),
     setFloating,
     setReference,
