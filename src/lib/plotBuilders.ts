@@ -13,45 +13,44 @@ type BasePlotParams = {
   plotSize: number;
 };
 
-type OverlayPlotParams = BasePlotParams & {
-  pointRendering: PointRendering;
+type EqualityPlotParams = BasePlotParams & {
   showEqualityLine: boolean;
-  visibleLanguageSeries: VisibleLanguageSeries[];
 };
 
-function createVisiblePointMarks(
-  visibleLanguageSeries: VisibleLanguageSeries[],
+type LanguageSeriesPlotParams = BasePlotParams & {
+  pointRendering: PointRendering;
+  visibleLanguageSeries: VisibleLanguageSeries;
+};
+
+function createVisiblePointMark(
+  visibleLanguageSeries: VisibleLanguageSeries,
   pointRendering: PointRendering,
 ) {
   if (pointRendering.useCompactSquares) {
-    return visibleLanguageSeries.map((series) =>
-      Plot.dot(series.visiblePoints, {
-        x: "value",
-        y: "alphabeticalRank",
-        fill: series.color,
-        fillOpacity: 0.82,
-        symbol: "square",
-        stroke: "rgba(235, 240, 255, 0.52)",
-        strokeWidth: 0.7,
-        r: pointRendering.radius,
-        title: getPointTitle,
-      }),
-    );
-  }
-
-  return visibleLanguageSeries.map((series) =>
-    Plot.cell(series.visiblePoints, {
+    return Plot.dot(visibleLanguageSeries.visiblePoints, {
       x: "value",
       y: "alphabeticalRank",
-      fill: series.color,
-      fillOpacity: 0.44,
-      inset: 0.8,
-      stroke: series.color,
-      strokeOpacity: 0.9,
-      strokeWidth: 0.45,
+      fill: visibleLanguageSeries.color,
+      fillOpacity: 0.82,
+      symbol: "square",
+      stroke: "rgba(235, 240, 255, 0.52)",
+      strokeWidth: 0.7,
+      r: pointRendering.radius,
       title: getPointTitle,
-    }),
-  );
+    });
+  }
+
+  return Plot.cell(visibleLanguageSeries.visiblePoints, {
+    x: "value",
+    y: "alphabeticalRank",
+    fill: visibleLanguageSeries.color,
+    fillOpacity: 0.44,
+    inset: 0.8,
+    stroke: visibleLanguageSeries.color,
+    strokeOpacity: 0.9,
+    strokeWidth: 0.45,
+    title: getPointTitle,
+  });
 }
 
 export function createBasePlot({
@@ -102,14 +101,12 @@ export function createBasePlot({
   });
 }
 
-export function createOverlayPlot({
+export function createEqualityPlot({
   chartData,
   layout,
   plotSize,
-  pointRendering,
   showEqualityLine,
-  visibleLanguageSeries,
-}: OverlayPlotParams) {
+}: EqualityPlotParams) {
   return Plot.plot({
     width: plotSize,
     height: plotSize,
@@ -160,8 +157,45 @@ export function createOverlayPlot({
             }),
           ]
         : []),
-      ...createVisiblePointMarks(visibleLanguageSeries, pointRendering),
     ],
+  });
+}
+
+export function createLanguageSeriesPlot({
+  chartData,
+  layout,
+  plotSize,
+  pointRendering,
+  visibleLanguageSeries,
+}: LanguageSeriesPlotParams) {
+  return Plot.plot({
+    width: plotSize,
+    height: plotSize,
+    marginTop: layout.marginPad,
+    marginRight: layout.marginPad,
+    marginBottom: layout.axisPad,
+    marginLeft: layout.axisPad,
+    style: {
+      background: "transparent",
+      fontFamily: "var(--font-body)",
+      overflow: "visible",
+    },
+    x: {
+      type: "band",
+      axis: null,
+      domain: chartData.xValues,
+      padding: 0,
+      round: false,
+    },
+    y: {
+      type: "band",
+      axis: null,
+      domain: chartData.yValues,
+      padding: 0,
+      round: false,
+      reverse: true,
+    },
+    marks: [createVisiblePointMark(visibleLanguageSeries, pointRendering)],
   });
 }
 

@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { type RefObject, useEffect, useId, useRef } from "react";
 import type { AppOptions, NumberRange, PointDisplayMode } from "../app/types";
 import type { LanguageSeries } from "../lib/chartData";
@@ -161,26 +161,28 @@ export function ControlsPanel({
         </button>
       </motion.div>
 
-      {controlsMinimized ? null : (
-        <ControlsPanelContent
-          controlsBodyId={controlsBodyId}
-          floatingRef={(node) => {
-            floatingPanelRef.current = node;
-            setFloating(node);
-          }}
-          floatingStyle={floatingStyles}
-          languageSeries={languageSeries}
-          options={options}
-          panelAlignment={panelAlignment}
-          selectedLanguageColorById={selectedLanguageColorById}
-          setPointDisplayMode={setPointDisplayMode}
-          setSelectedLanguageIds={setSelectedLanguageIds}
-          setShowEqualityLine={setShowEqualityLine}
-          setShowRangeSliders={setShowRangeSliders}
-          toggleHiddenLanguageId={toggleHiddenLanguageId}
-          updateAvailableRange={updateAvailableRange}
-        />
-      )}
+      <AnimatePresence initial={false}>
+        {controlsMinimized ? null : (
+          <ControlsPanelContent
+            controlsBodyId={controlsBodyId}
+            floatingRef={(node) => {
+              floatingPanelRef.current = node;
+              setFloating(node);
+            }}
+            floatingStyle={floatingStyles}
+            languageSeries={languageSeries}
+            options={options}
+            panelAlignment={panelAlignment}
+            selectedLanguageColorById={selectedLanguageColorById}
+            setPointDisplayMode={setPointDisplayMode}
+            setSelectedLanguageIds={setSelectedLanguageIds}
+            setShowEqualityLine={setShowEqualityLine}
+            setShowRangeSliders={setShowRangeSliders}
+            toggleHiddenLanguageId={toggleHiddenLanguageId}
+            updateAvailableRange={updateAvailableRange}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

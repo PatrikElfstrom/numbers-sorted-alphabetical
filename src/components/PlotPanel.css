@@ -248,6 +248,10 @@
   mix-blend-mode: screen;
 }
 
+.plot-layer--overlay-series {
+  transform-origin: center;
+}
+
 .plot-layer svg {
   position: relative;
   display: block;

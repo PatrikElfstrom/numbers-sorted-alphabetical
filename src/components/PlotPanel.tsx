@@ -1,9 +1,13 @@
-import { useMemo } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useMemo, useRef } from "react";
 import type { AppOptions } from "../app/types";
 import {
   type ChartData,
+  type PlotLayout,
+  type PointRendering,
   type VisibleLanguageSeries,
 } from "../lib/chartData";
+import { createLanguageSeriesPlot, mountPlot } from "../lib/plotBuilders";
 import { getPlotPanelViewModel } from "../lib/plotPanel";
 import { usePlotLayers } from "../hooks/usePlotLayers";
 import "./PlotPanel.css";
@@ -20,6 +24,68 @@ type PlotPanelProps = {
   visibleLanguageSeries: VisibleLanguageSeries[];
 };
 
+const plotSeriesTransition = {
+  duration: 0.22,
+  ease: [0.22, 1, 0.36, 1],
+} as const;
+
+type PlotLanguageLayerProps = {
+  chartData: ChartData;
+  layout: PlotLayout;
+  plotSize: number;
+  pointRendering: PointRendering;
+  transition: typeof plotSeriesTransition | { duration: number };
+  visibleLanguageSeries: VisibleLanguageSeries;
+};
+
+function PlotLanguageLayer({
+  chartData,
+  layout,
+  plotSize,
+  pointRendering,
+  transition,
+  visibleLanguageSeries,
+}: PlotLanguageLayerProps) {
+  const overlayPlotRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!overlayPlotRef.current) {
+      return;
+    }
+
+    return mountPlot(
+      overlayPlotRef.current,
+      createLanguageSeriesPlot({
+        chartData,
+        layout,
+        plotSize,
+        pointRendering,
+        visibleLanguageSeries,
+      }),
+    );
+  }, [chartData, layout, plotSize, pointRendering, visibleLanguageSeries]);
+
+  return (
+    <motion.div
+      animate={{
+        filter: "blur(0px)",
+        opacity: 1,
+      }}
+      className="plot-layer plot-layer--overlay plot-layer--overlay-series"
+      exit={{
+        filter: "blur(3px)",
+        opacity: 0,
+      }}
+      initial={{
+        filter: "blur(4px)",
+        opacity: 0,
+      }}
+      ref={overlayPlotRef}
+      transition={transition}
+    />
+  );
+}
+
 export function PlotPanel({
   chartData,
   options,
@@ -31,18 +97,20 @@ export function PlotPanel({
   setVisibleValueRangeStart,
   visibleLanguageSeries,
 }: PlotPanelProps) {
+  const prefersReducedMotion = useReducedMotion();
   const viewModel = useMemo(
     () => getPlotPanelViewModel(options, plotSize),
     [options, plotSize],
   );
-  const { basePlotRef, overlayPlotRef } = usePlotLayers({
+  const { basePlotRef, equalityPlotRef } = usePlotLayers({
     chartData,
     layout: viewModel.layout,
     plotSize,
-    pointRendering: viewModel.pointRendering,
     showEqualityLine: options.showEqualityLine,
-    visibleLanguageSeries,
   });
+  const seriesTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : plotSeriesTransition;
 
   return (
     <div className="plot-shell">
@@ -108,7 +176,20 @@ export function PlotPanel({
               </svg>
             </div>
             <div className="plot-layer plot-layer--base" ref={basePlotRef} />
-            <div className="plot-layer plot-layer--overlay" ref={overlayPlotRef} />
+            <div className="plot-layer plot-layer--overlay" ref={equalityPlotRef} />
+            <AnimatePresence initial={false}>
+              {visibleLanguageSeries.map((series) => (
+                <PlotLanguageLayer
+                  chartData={chartData}
+                  key={series.languageId}
+                  layout={viewModel.layout}
+                  plotSize={plotSize}
+                  pointRendering={viewModel.pointRendering}
+                  transition={seriesTransition}
+                  visibleLanguageSeries={series}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         </div>
 

@@ -1,35 +1,29 @@
 import { useEffect, useRef } from "react";
 import {
   createBasePlot,
-  createOverlayPlot,
+  createEqualityPlot,
   mountPlot,
 } from "../lib/plotBuilders";
 import type {
   ChartData,
   PlotLayout,
-  PointRendering,
-  VisibleLanguageSeries,
 } from "../lib/chartData";
 
 type UsePlotLayersOptions = {
   chartData: ChartData;
   layout: PlotLayout;
   plotSize: number;
-  pointRendering: PointRendering;
   showEqualityLine: boolean;
-  visibleLanguageSeries: VisibleLanguageSeries[];
 };
 
 export function usePlotLayers({
   chartData,
   layout,
   plotSize,
-  pointRendering,
   showEqualityLine,
-  visibleLanguageSeries,
 }: UsePlotLayersOptions) {
   const basePlotRef = useRef<HTMLDivElement | null>(null);
-  const overlayPlotRef = useRef<HTMLDivElement | null>(null);
+  const equalityPlotRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!basePlotRef.current) {
@@ -47,32 +41,23 @@ export function usePlotLayers({
   }, [chartData, layout, plotSize]);
 
   useEffect(() => {
-    if (!overlayPlotRef.current) {
+    if (!equalityPlotRef.current) {
       return;
     }
 
     return mountPlot(
-      overlayPlotRef.current,
-      createOverlayPlot({
+      equalityPlotRef.current,
+      createEqualityPlot({
         chartData,
         layout,
         plotSize,
-        pointRendering,
         showEqualityLine,
-        visibleLanguageSeries,
       }),
     );
-  }, [
-    chartData,
-    layout,
-    plotSize,
-    pointRendering,
-    showEqualityLine,
-    visibleLanguageSeries,
-  ]);
+  }, [chartData, layout, plotSize, showEqualityLine]);
 
   return {
     basePlotRef,
-    overlayPlotRef,
+    equalityPlotRef,
   };
 }
