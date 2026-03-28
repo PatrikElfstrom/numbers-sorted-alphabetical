@@ -65,4 +65,14 @@ describe("loadStoredAppOptions", () => {
       resolveLanguageId("en-US"),
     ]);
   });
+
+  it("preserves an explicit empty language selection", () => {
+    const storage = createStorage(
+      JSON.stringify({
+        selectedLanguageIds: [],
+      }),
+    );
+
+    expect(loadStoredAppOptions(storage).selectedLanguageIds).toEqual([]);
+  });
 });

@@ -56,6 +56,45 @@
   padding-bottom: 0.2rem;
 }
 
+.multi-combobox__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0.2rem 0.15rem;
+}
+
+.multi-combobox__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: rgba(232, 237, 255, 0.62);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.multi-combobox__action:hover,
+.multi-combobox__action:focus-visible {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(238, 242, 255, 0.9);
+  outline: none;
+}
+
+.multi-combobox__action--active {
+  color: rgba(238, 242, 255, 0.9);
+}
+
+.multi-combobox__action-count {
+  color: rgba(232, 237, 255, 0.42);
+  font-size: 0.74rem;
+}
+
 .multi-combobox__search {
   width: 100%;
   padding: 0.55rem 0.7rem;

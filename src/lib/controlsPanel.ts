@@ -62,12 +62,10 @@ export function getLanguageRemovalState(
   canRemove: boolean;
   removeText: string;
 } {
-  const canRemove = selectedLanguageCount > 1;
+  const canRemove = selectedLanguageCount > 0;
 
   return {
-    ariaLabel: canRemove
-      ? `Remove ${languageLabel}`
-      : `${languageLabel} is required`,
+    ariaLabel: `Remove ${languageLabel}`,
     canRemove,
     removeText: canRemove ? "x" : "",
   };

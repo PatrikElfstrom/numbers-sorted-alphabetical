@@ -44,13 +44,13 @@ export function ControlsPanel({
           <span>Language</span>
           <MultiSelectCombobox
             emptyText="No languages match your search."
-            minSelected={1}
             onValueChange={(nextValues) => {
               setSelectedLanguageIds(nextValues as LanguageId[]);
             }}
             options={languageOptions}
             placeholder="Choose one or more languages"
             searchPlaceholder="Search languages..."
+            selectAllLabel="Select all languages"
             value={options.selectedLanguageIds}
           />
         </div>

@@ -30,21 +30,8 @@ export function normalizeAvailableRange(range: NumberRange): NumberRange {
 
 export function ensureSelectedLanguageIds(
   nextSelectedLanguageIds: LanguageId[],
-  fallbackSelectedLanguageIds: LanguageId[],
 ): LanguageId[] {
-  const selectedLanguageIds = Array.from(
-    new Set(nextSelectedLanguageIds.filter(isLanguageId)),
-  );
-
-  if (selectedLanguageIds.length > 0) {
-    return selectedLanguageIds;
-  }
-
-  if (fallbackSelectedLanguageIds.length > 0) {
-    return fallbackSelectedLanguageIds;
-  }
-
-  return [defaultLanguageId];
+  return Array.from(new Set(nextSelectedLanguageIds.filter(isLanguageId)));
 }
 
 export function getDefaultAppOptions(): AppOptions {

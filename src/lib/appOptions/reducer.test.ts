@@ -60,4 +60,13 @@ describe("appOptionsReducer", () => {
     expect(clampedValueStart.visibleValueRange.start).toBe(20);
     expect(clampedRankEnd.visibleRankRange.end).toBe(11);
   });
+
+  it("allows clearing all selected languages", () => {
+    const nextState = appOptionsReducer(defaultAppOptions, {
+      type: "setSelectedLanguageIds",
+      selectedLanguageIds: [],
+    });
+
+    expect(nextState.selectedLanguageIds).toEqual([]);
+  });
 });

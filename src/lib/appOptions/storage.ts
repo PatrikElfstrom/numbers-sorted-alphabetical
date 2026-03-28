@@ -84,9 +84,14 @@ export function loadStoredAppOptions(
     }
 
     const parsedOptions = parsedValue as StoredUserOptions;
-    const selectedLanguageIds = getStoredLanguageIds(
+    const hasStoredSelectedLanguageIds = Array.isArray(
       parsedOptions.selectedLanguageIds,
     );
+    const selectedLanguageIds = hasStoredSelectedLanguageIds
+      ? ensureSelectedLanguageIds(
+          getStoredLanguageIds(parsedOptions.selectedLanguageIds),
+        )
+      : getDefaultAppOptions().selectedLanguageIds;
     const availableRange = normalizeAvailableRange({
       start: getStoredNumber(
         parsedOptions.availableStart,
@@ -124,7 +129,7 @@ export function loadStoredAppOptions(
     visibleRankRange.end = Math.max(visibleRankRange.start, visibleRankRange.end);
 
     return {
-      selectedLanguageIds: ensureSelectedLanguageIds(selectedLanguageIds, []),
+      selectedLanguageIds,
       availableRange,
       visibleValueRange,
       visibleRankRange,

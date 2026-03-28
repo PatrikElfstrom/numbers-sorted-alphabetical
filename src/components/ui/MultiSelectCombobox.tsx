@@ -1,6 +1,11 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Command } from "cmdk";
+import {
+  areAllOptionsSelected,
+  getNextValues,
+  getToggleAllValues,
+} from "./multiSelectComboboxState";
 import "./MultiSelectCombobox.css";
 
 type MultiSelectOption = {
@@ -16,6 +21,7 @@ type MultiSelectComboboxProps = {
   options: MultiSelectOption[];
   placeholder: string;
   searchPlaceholder: string;
+  selectAllLabel?: string;
   value: string[];
 };
 
@@ -34,24 +40,6 @@ function getSelectionLabel(
   return `${selectedOptions.length} languages selected`;
 }
 
-function getNextValues(
-  currentValues: string[],
-  nextValue: string,
-  minSelected: number,
-): string[] {
-  const isSelected = currentValues.includes(nextValue);
-
-  if (!isSelected) {
-    return [...currentValues, nextValue];
-  }
-
-  if (currentValues.length <= minSelected) {
-    return currentValues;
-  }
-
-  return currentValues.filter((currentValue) => currentValue !== nextValue);
-}
-
 export function MultiSelectCombobox({
   emptyText,
   minSelected = 0,
@@ -59,15 +47,25 @@ export function MultiSelectCombobox({
   options,
   placeholder,
   searchPlaceholder,
+  selectAllLabel,
   value,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = useState(false);
+  const optionValues = useMemo(
+    () => options.map((option) => option.value),
+    [options],
+  );
   const selectedValueSet = useMemo(() => new Set(value), [value]);
+  const allOptionsSelected = useMemo(
+    () => areAllOptionsSelected(value, optionValues),
+    [optionValues, value],
+  );
   const selectedOptions = useMemo(
     () => options.filter((option) => selectedValueSet.has(option.value)),
     [options, selectedValueSet],
   );
   const triggerLabel = getSelectionLabel(placeholder, selectedOptions);
+  const toggleButtonLabel = allOptionsSelected ? "Clear all" : selectAllLabel;
 
   return (
     <div className="multi-combobox">
@@ -117,6 +115,34 @@ export function MultiSelectCombobox({
                   placeholder={searchPlaceholder}
                 />
               </div>
+
+              {selectAllLabel ? (
+                <div className="multi-combobox__actions">
+                  <button
+                    aria-pressed={allOptionsSelected}
+                    className={
+                      allOptionsSelected
+                        ? "multi-combobox__action multi-combobox__action--active"
+                        : "multi-combobox__action"
+                    }
+                    onClick={() => {
+                      onValueChange(
+                        getToggleAllValues({
+                        currentValues: value,
+                        minSelected,
+                        optionValues,
+                        }),
+                      );
+                    }}
+                    type="button"
+                  >
+                    <span>{toggleButtonLabel}</span>
+                    <span className="multi-combobox__action-count">
+                      {value.length}/{options.length}
+                    </span>
+                  </button>
+                </div>
+              ) : null}
 
               <Command.List className="multi-combobox__list">
                 <Command.Empty className="multi-combobox__empty">

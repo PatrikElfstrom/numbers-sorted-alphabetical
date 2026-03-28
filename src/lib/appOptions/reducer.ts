@@ -52,10 +52,7 @@ export function appOptionsReducer(
     case "setSelectedLanguageIds":
       return {
         ...state,
-        selectedLanguageIds: ensureSelectedLanguageIds(
-          action.selectedLanguageIds,
-          state.selectedLanguageIds,
-        ),
+        selectedLanguageIds: ensureSelectedLanguageIds(action.selectedLanguageIds),
       };
 
     case "setPointDisplayMode":
