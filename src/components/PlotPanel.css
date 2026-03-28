@@ -1,4 +1,7 @@
 .range-slider {
+  --range-slider-rail-size: 0.24rem;
+  --range-slider-thumb-size: 0.9rem;
+
   position: relative;
   height: 2rem;
 }
@@ -9,7 +12,7 @@
   left: 0;
   right: 0;
   top: 50%;
-  height: 0.24rem;
+  height: var(--range-slider-rail-size);
   border-radius: 999px;
   background: rgba(215, 224, 255, 0.14);
   transform: translateY(-50%);
@@ -18,7 +21,7 @@
 .range-slider__track {
   position: absolute;
   top: 50%;
-  height: 0.24rem;
+  height: var(--range-slider-rail-size);
   border-radius: 999px;
   background: linear-gradient(90deg, #8f7dff, #69b9ff);
   transform: translateY(-50%);
@@ -34,7 +37,7 @@
   bottom: 0;
   left: 50%;
   right: auto;
-  width: 0.24rem;
+  width: var(--range-slider-rail-size);
   height: auto;
   transform: translateX(-50%);
 }
@@ -43,7 +46,7 @@
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 0.24rem;
+  width: var(--range-slider-rail-size);
   height: auto;
   background: linear-gradient(180deg, #8f7dff, #69b9ff);
   transform: translateX(-50%);
@@ -54,15 +57,17 @@
   inset: 0;
   width: 100%;
   margin: 0;
+  -webkit-appearance: none;
   appearance: none;
   background: transparent;
   pointer-events: none;
 }
 
 .range-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
   appearance: none;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: var(--range-slider-thumb-size);
+  height: var(--range-slider-thumb-size);
   border: 2px solid rgba(209, 219, 255, 0.86);
   border-radius: 50%;
   background: #0d1020;
@@ -72,8 +77,8 @@
 }
 
 .range-slider__input::-moz-range-thumb {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: var(--range-slider-thumb-size);
+  height: var(--range-slider-thumb-size);
   border: 2px solid rgba(209, 219, 255, 0.86);
   border-radius: 50%;
   background: #0d1020;
@@ -83,7 +88,7 @@
 }
 
 .range-slider__input::-webkit-slider-runnable-track {
-  height: 100%;
+  height: var(--range-slider-rail-size);
   background: transparent;
 }
 
@@ -98,6 +103,12 @@
   height: 100%;
   writing-mode: vertical-lr;
   transform: rotate(180deg);
+}
+
+.range-slider__input:not(.range-slider__input--vertical)::-webkit-slider-thumb {
+  margin-top: calc(
+    (var(--range-slider-rail-size) - var(--range-slider-thumb-size)) / 2
+  );
 }
 
 .plot-shell {
