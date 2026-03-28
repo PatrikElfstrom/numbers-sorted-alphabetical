@@ -4,7 +4,6 @@ import {
   getLanguageCollator,
   getNumberName,
   getSortableNumberName,
-  numberLanguages,
   numberLanguageById,
   type LanguageId,
 } from "../../numberLanguages";
