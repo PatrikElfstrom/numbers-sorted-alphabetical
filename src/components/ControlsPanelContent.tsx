@@ -5,7 +5,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "motion/react";
-import { type CSSProperties, useEffect, useMemo, useRef } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import type { AppOptions, NumberRange, PointDisplayMode } from "../app/types";
 import { maxAvailableValue, minAvailableStart } from "../lib/appOptions";
 import { getGuideFormulaLabel, type LanguageSeries } from "../lib/chartData";
@@ -107,6 +107,12 @@ export function ControlsPanelContent({
   updateAvailableRange,
 }: ControlsPanelContentProps) {
   const prefersReducedMotion = useReducedMotion();
+  const [availableRangeStartInput, setAvailableRangeStartInput] = useState(() =>
+    String(options.availableRange.start),
+  );
+  const [availableRangeEndInput, setAvailableRangeEndInput] = useState(() =>
+    String(options.availableRange.end),
+  );
   const languageOptions = useMemo(
     () => getLanguageOptions(selectedLanguageColorById),
     [selectedLanguageColorById],
@@ -218,6 +224,34 @@ export function ControlsPanelContent({
     prefersReducedMotion,
   ]);
 
+  function getCommittedAvailableRangeStart(inputValue: string): NumberRange | null {
+    if (inputValue === "") {
+      return null;
+    }
+
+    const parsedValue = Number(inputValue);
+
+    if (!Number.isFinite(parsedValue)) {
+      return null;
+    }
+
+    return getAvailableRangeFromStartInput(inputValue, options.availableRange.end);
+  }
+
+  function getCommittedAvailableRangeEnd(inputValue: string): NumberRange | null {
+    if (inputValue === "") {
+      return null;
+    }
+
+    const parsedValue = Number(inputValue);
+
+    if (!Number.isFinite(parsedValue)) {
+      return null;
+    }
+
+    return getAvailableRangeFromEndInput(inputValue, options.availableRange.start);
+  }
+
   return (
     <div
       className={
@@ -308,15 +342,36 @@ export function ControlsPanelContent({
                       max={maxAvailableValue}
                       min={minAvailableStart}
                       onChange={(event) => {
-                        updateAvailableRange(
-                          getAvailableRangeFromStartInput(
-                            event.target.value,
-                            options.availableRange.end,
-                          ),
-                        );
+                        const nextInputValue = event.target.value;
+                        const nextRange =
+                          getCommittedAvailableRangeStart(nextInputValue);
+
+                        setAvailableRangeStartInput(nextInputValue);
+
+                        if (nextRange === null) {
+                          return;
+                        }
+
+                        updateAvailableRange(nextRange);
+                        setAvailableRangeEndInput(String(nextRange.end));
+                      }}
+                      onBlur={() => {
+                        const nextRange =
+                          getCommittedAvailableRangeStart(availableRangeStartInput);
+
+                        if (nextRange === null) {
+                          setAvailableRangeStartInput(
+                            String(options.availableRange.start),
+                          );
+                          return;
+                        }
+
+                        updateAvailableRange(nextRange);
+                        setAvailableRangeStartInput(String(nextRange.start));
+                        setAvailableRangeEndInput(String(nextRange.end));
                       }}
                       type="number"
-                      value={options.availableRange.start}
+                      value={availableRangeStartInput}
                     />
                   </label>
                   <label className="number-group number-group--to">
@@ -326,15 +381,33 @@ export function ControlsPanelContent({
                       max={maxAvailableValue}
                       min={minAvailableStart}
                       onChange={(event) => {
-                        updateAvailableRange(
-                          getAvailableRangeFromEndInput(
-                            event.target.value,
-                            options.availableRange.start,
-                          ),
-                        );
+                        const nextInputValue = event.target.value;
+                        const nextRange = getCommittedAvailableRangeEnd(nextInputValue);
+
+                        setAvailableRangeEndInput(nextInputValue);
+
+                        if (nextRange === null) {
+                          return;
+                        }
+
+                        updateAvailableRange(nextRange);
+                        setAvailableRangeStartInput(String(nextRange.start));
+                      }}
+                      onBlur={() => {
+                        const nextRange =
+                          getCommittedAvailableRangeEnd(availableRangeEndInput);
+
+                        if (nextRange === null) {
+                          setAvailableRangeEndInput(String(options.availableRange.end));
+                          return;
+                        }
+
+                        updateAvailableRange(nextRange);
+                        setAvailableRangeStartInput(String(nextRange.start));
+                        setAvailableRangeEndInput(String(nextRange.end));
                       }}
                       type="number"
-                      value={options.availableRange.end}
+                      value={availableRangeEndInput}
                     />
                   </label>
 
