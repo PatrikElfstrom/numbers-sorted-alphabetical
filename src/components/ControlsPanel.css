@@ -531,4 +531,8 @@
   .controls-card__grid--range {
     grid-template-columns: 1fr;
   }
+
+  .number-input {
+    font-size: 16px;
+  }
 }

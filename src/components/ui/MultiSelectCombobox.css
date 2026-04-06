@@ -202,3 +202,9 @@
 .multi-combobox__check--selected {
   color: #eef2ff;
 }
+
+@media (max-width: 720px) {
+  .multi-combobox__search {
+    font-size: 16px;
+  }
+}
