@@ -49,6 +49,13 @@ export function ControlsPanel({
 }: ControlsPanelProps) {
   const controlsBodyId = useId();
   const [controlsPinned, setControlsPinned] = useState(false);
+  const [usesDialogLayout, setUsesDialogLayout] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.innerWidth <= 720;
+  });
   const floatingPanelRef = useRef<HTMLElement | null>(null);
   const floatingToggleRef = useRef<HTMLButtonElement | null>(null);
   const {
@@ -72,7 +79,21 @@ export function ControlsPanel({
   });
 
   useEffect(() => {
-    if (controlsMinimized || controlsPinned) {
+    const mediaQueryList = window.matchMedia("(max-width: 720px)");
+    const updateLayout = () => {
+      setUsesDialogLayout(mediaQueryList.matches);
+    };
+
+    updateLayout();
+    mediaQueryList.addEventListener("change", updateLayout);
+
+    return () => {
+      mediaQueryList.removeEventListener("change", updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (usesDialogLayout || controlsMinimized || controlsPinned) {
       return;
     }
 
@@ -112,7 +133,89 @@ export function ControlsPanel({
     return () => {
       document.removeEventListener("pointerdown", handleDocumentPointerDown);
     };
-  }, [controlsMinimized, controlsPinned, setControlsMinimized]);
+  }, [
+    controlsMinimized,
+    controlsPinned,
+    setControlsMinimized,
+    usesDialogLayout,
+  ]);
+
+  if (usesDialogLayout) {
+    return (
+      <>
+        <motion.div
+          animate={{
+            opacity: 1,
+            scale: 1,
+          }}
+          className="controls-floating-shell controls-floating-shell--dialog"
+          drag
+          dragControls={dragControls}
+          dragConstraints={dragBoundsRef}
+          dragElastic={0.16}
+          dragListener={false}
+          dragTransition={floatingButtonDragTransition}
+          initial={{
+            opacity: 0,
+            scale: 0.94,
+          }}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          onDragStart={handleDragStart}
+          style={shellStyle}
+          whileDrag={{
+            scale: 1.05,
+            boxShadow: "0 22px 54px rgba(0, 0, 0, 0.34)",
+          }}
+        >
+          <button
+            aria-controls={controlsBodyId}
+            aria-expanded={!controlsMinimized}
+            className="controls-shell__floating-toggle controls-shell__floating-toggle--dialog"
+            onClick={() => {
+              if (shouldSuppressToggle()) {
+                return;
+              }
+
+              setControlsMinimized(!controlsMinimized);
+            }}
+            onPointerDown={handleButtonPointerDown}
+            ref={(node) => {
+              floatingToggleRef.current = node;
+              setReference(node);
+            }}
+            type="button"
+          >
+            {controlsMinimized ? "Show controls" : "Hide controls"}
+          </button>
+        </motion.div>
+        <AnimatePresence initial={false}>
+          {controlsMinimized ? null : (
+            <ControlsPanelContent
+              controlsPinned={false}
+              controlsBodyId={controlsBodyId}
+              floatingRef={() => {}}
+              floatingPlacement="dialog"
+              floatingPosition={null}
+              languageSeries={languageSeries}
+              options={options}
+              panelAlignment="left"
+              selectedLanguageColorById={selectedLanguageColorById}
+              setControlsPinned={setControlsPinned}
+              setPointDisplayMode={setPointDisplayMode}
+              setSelectedLanguageIds={setSelectedLanguageIds}
+              setShowEqualityLine={setShowEqualityLine}
+              setShowRangeSliders={setShowRangeSliders}
+              showPinToggle={false}
+              useDialogLayout
+              toggleHiddenLanguageId={toggleHiddenLanguageId}
+              updateAvailableRange={updateAvailableRange}
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
   return (
     <>
@@ -183,6 +286,8 @@ export function ControlsPanel({
             setSelectedLanguageIds={setSelectedLanguageIds}
             setShowEqualityLine={setShowEqualityLine}
             setShowRangeSliders={setShowRangeSliders}
+            showPinToggle
+            useDialogLayout={false}
             toggleHiddenLanguageId={toggleHiddenLanguageId}
             updateAvailableRange={updateAvailableRange}
           />

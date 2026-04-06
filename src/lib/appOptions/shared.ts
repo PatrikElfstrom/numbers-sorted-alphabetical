@@ -13,9 +13,18 @@ export const defaultAvailableRange: NumberRange = {
   start: 0,
   end: 100,
 };
+export const mobileViewportMaxWidth = 720;
 export const userOptionsStorageKey = "alphabetical-numbers:user-options";
 export const defaultLanguageId =
   resolveLanguageId("sv-SE") ?? numberLanguages[0].id;
+
+function getViewportWidth(): number | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.innerWidth;
+}
 
 function isLanguageId(value: unknown): value is LanguageId {
   return typeof value === "string" && Object.hasOwn(numberLanguageById, value);
@@ -50,7 +59,19 @@ export function ensureHiddenLanguageIds(
   );
 }
 
-export function getDefaultAppOptions(): AppOptions {
+export function getDefaultShowRangeSliders(
+  viewportWidth: number | null = getViewportWidth(),
+): boolean {
+  if (viewportWidth === null) {
+    return true;
+  }
+
+  return viewportWidth > mobileViewportMaxWidth;
+}
+
+export function getDefaultAppOptions(
+  viewportWidth: number | null = getViewportWidth(),
+): AppOptions {
   const availableRange = { ...defaultAvailableRange };
   const availableCount = getRangeCount(availableRange);
 
@@ -65,7 +86,7 @@ export function getDefaultAppOptions(): AppOptions {
     },
     pointDisplayMode: "auto",
     showEqualityLine: false,
-    showRangeSliders: true,
+    showRangeSliders: getDefaultShowRangeSliders(viewportWidth),
   };
 }
 

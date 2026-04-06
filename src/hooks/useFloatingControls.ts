@@ -19,7 +19,7 @@ type UseFloatingControlsOptions = {
 type PanelAlignment = "left" | "right";
 
 function getViewportPadding(): number {
-  return window.innerWidth <= 720 ? 10 : 12;
+  return window.innerWidth <= 720 ? 14 : 12;
 }
 
 const maxControlsPanelWidth = 750;
@@ -125,16 +125,28 @@ export function useFloatingControls({
     }
 
     const viewportPadding = getViewportPadding();
-    const nextX = Math.max(
-      viewportPadding,
-      defaultAnchorRect.right -
-        dragBoundsRect.left -
-        floatingButtonRect.width,
-    );
-    const nextY = Math.max(
-      viewportPadding,
-      defaultAnchorRect.top - dragBoundsRect.top,
-    );
+    const nextX =
+      window.innerWidth <= 720
+        ? Math.max(
+            viewportPadding,
+            window.innerWidth - floatingButtonRect.width - viewportPadding,
+          )
+        : Math.max(
+            viewportPadding,
+            defaultAnchorRect.right -
+              dragBoundsRect.left -
+              floatingButtonRect.width,
+          );
+    const nextY =
+      window.innerWidth <= 720
+        ? Math.max(
+            viewportPadding,
+            window.innerHeight - floatingButtonRect.height - viewportPadding,
+          )
+        : Math.max(
+            viewportPadding,
+            defaultAnchorRect.top - dragBoundsRect.top,
+          );
 
     x.set(nextX);
     y.set(nextY);

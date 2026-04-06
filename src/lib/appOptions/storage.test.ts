@@ -114,4 +114,24 @@ describe("loadStoredAppOptions", () => {
 
     expect(loadStoredAppOptions(storage).showRangeSliders).toBe(false);
   });
+
+  it("hides range sliders by default on mobile when no preference is stored", () => {
+    const storage = createStorage(
+      JSON.stringify({
+        selectedLanguageIds: ["sv-SE"],
+      }),
+    );
+
+    expect(loadStoredAppOptions(storage, 390).showRangeSliders).toBe(false);
+  });
+
+  it("keeps range sliders visible on mobile when the user explicitly enabled them", () => {
+    const storage = createStorage(
+      JSON.stringify({
+        showRangeSliders: true,
+      }),
+    );
+
+    expect(loadStoredAppOptions(storage, 390).showRangeSliders).toBe(true);
+  });
 });

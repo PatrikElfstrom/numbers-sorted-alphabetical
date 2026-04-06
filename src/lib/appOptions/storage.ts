@@ -5,6 +5,7 @@ import {
   defaultAvailableRange,
   ensureHiddenLanguageIds,
   getDefaultAppOptions,
+  getDefaultShowRangeSliders,
   normalizeAvailableRange,
   userOptionsStorageKey,
 } from "./shared";
@@ -79,28 +80,31 @@ function getLocalStorage(): StorageLike | null {
 
 export function loadStoredAppOptions(
   storage: StorageLike | null = getLocalStorage(),
+  viewportWidth?: number | null,
 ): AppOptions {
+  const defaultOptions = getDefaultAppOptions(viewportWidth);
+
   if (!storage) {
-    return getDefaultAppOptions();
+    return defaultOptions;
   }
 
   try {
     const rawValue = storage.getItem(userOptionsStorageKey);
 
     if (!rawValue) {
-      return getDefaultAppOptions();
+      return defaultOptions;
     }
 
     const parsedValue: unknown = JSON.parse(rawValue);
 
     if (!parsedValue || typeof parsedValue !== "object") {
-      return getDefaultAppOptions();
+      return defaultOptions;
     }
 
     const parsedOptions = parsedValue as StoredUserOptions;
     const selectedLanguageIds =
       getStoredSelectedLanguageIds(parsedOptions.selectedLanguageIds) ??
-      getDefaultAppOptions().selectedLanguageIds;
+      defaultOptions.selectedLanguageIds;
     const hiddenLanguageIds = ensureHiddenLanguageIds(
       getStoredLanguageIds(parsedOptions.hiddenLanguageIds),
       selectedLanguageIds,
@@ -151,10 +155,13 @@ export function loadStoredAppOptions(
         ? parsedOptions.pointDisplayMode
         : "auto",
       showEqualityLine: parsedOptions.showEqualityLine === true,
-      showRangeSliders: parsedOptions.showRangeSliders !== false,
+      showRangeSliders:
+        typeof parsedOptions.showRangeSliders === "boolean"
+          ? parsedOptions.showRangeSliders
+          : getDefaultShowRangeSliders(viewportWidth),
     };
   } catch {
-    return getDefaultAppOptions();
+    return defaultOptions;
   }
 }
 

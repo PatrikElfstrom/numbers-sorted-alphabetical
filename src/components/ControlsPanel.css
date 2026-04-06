@@ -3,8 +3,30 @@
   width: max-content;
 }
 
+.controls-floating-shell--dialog {
+  z-index: 6;
+}
+
 .controls-shell__floating-layer {
   z-index: 4;
+}
+
+.controls-shell__floating-layer--dialog {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding: 0.75rem;
+  z-index: 5;
+}
+
+.controls-shell__floating-layer--dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 4, 12, 0.34);
+  backdrop-filter: blur(10px);
 }
 
 .controls-shell {
@@ -23,6 +45,14 @@
   max-height: calc(100vh - 24px);
   overflow: auto;
   z-index: 4;
+}
+
+.controls-shell--dialog {
+  position: relative;
+  width: min(40rem, calc(100vw - 1.5rem));
+  max-width: calc(100vw - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
+  overflow: auto;
 }
 
 .controls-shell__floating-toggle {
@@ -463,18 +493,34 @@
 }
 
 @media (max-width: 720px) {
+  .controls-shell__floating-layer--dialog {
+    padding:
+      max(env(safe-area-inset-top), 4.25rem)
+      0.55rem
+      max(env(safe-area-inset-bottom), 0.55rem);
+  }
+
   .controls-shell {
     width: 100%;
     padding: 0.55rem 0.65rem;
     border-radius: 14px;
   }
 
+  .controls-shell--dialog {
+    width: calc(100vw - 1.1rem);
+    max-width: calc(100vw - 1.1rem);
+    max-height: calc(
+      100dvh - max(env(safe-area-inset-top), 0.55rem) -
+        max(env(safe-area-inset-bottom), 0.55rem) - 1rem
+    );
+  }
+
   .controls-shell__top {
     grid-template-columns: 1fr;
   }
 
-  .controls-shell__floating-toggle {
-    width: 100%;
+  .controls-shell__floating-toggle--dialog {
+    width: auto;
   }
 
   .controls-card {

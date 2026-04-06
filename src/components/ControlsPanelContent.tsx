@@ -80,6 +80,8 @@ type ControlsPanelContentProps = {
   setSelectedLanguageIds: (selectedLanguageIds: LanguageId[]) => void;
   setShowEqualityLine: (showEqualityLine: boolean) => void;
   setShowRangeSliders: (showRangeSliders: boolean) => void;
+  showPinToggle: boolean;
+  useDialogLayout: boolean;
   toggleHiddenLanguageId: (languageId: LanguageId) => void;
   updateAvailableRange: (availableRange: NumberRange) => void;
 };
@@ -99,6 +101,8 @@ export function ControlsPanelContent({
   setSelectedLanguageIds,
   setShowEqualityLine,
   setShowRangeSliders,
+  showPinToggle,
+  useDialogLayout,
   toggleHiddenLanguageId,
   updateAvailableRange,
 }: ControlsPanelContentProps) {
@@ -216,210 +220,220 @@ export function ControlsPanelContent({
 
   return (
     <div
-      className="controls-shell__floating-layer"
+      className={
+        useDialogLayout
+          ? "controls-shell__floating-layer controls-shell__floating-layer--dialog"
+          : "controls-shell__floating-layer"
+      }
       ref={floatingRef}
       style={{
-        left: floatingPosition?.left ?? 0,
-        position: floatingPosition?.position ?? "fixed",
-        top: floatingPosition?.top ?? 0,
-        visibility: floatingPosition === null ? "hidden" : "visible",
+        left: useDialogLayout ? undefined : (floatingPosition?.left ?? 0),
+        position: useDialogLayout
+          ? undefined
+          : (floatingPosition?.position ?? "fixed"),
+        top: useDialogLayout ? undefined : (floatingPosition?.top ?? 0),
+        visibility:
+          useDialogLayout || floatingPosition !== null ? "visible" : "hidden",
       }}
     >
       <motion.div style={{ x: floatingFlipOffsetX, y: floatingFlipOffsetY }}>
         <motion.section
-        animate={panelMotion.animate}
-        className={
-          panelAlignment === "right"
-            ? "controls-shell controls-shell--floating controls-shell--align-right"
-            : "controls-shell controls-shell--floating controls-shell--align-left"
-        }
-        exit={panelMotion.exit}
-        id={controlsBodyId}
-        initial={panelMotion.initial}
-        transition={panelTransition}
-      >
-        <motion.div
-          animate={sectionMotion.animate}
-          className="controls-shell__eyebrow-row"
-          initial={sectionMotion.initial}
-          transition={sectionTransition}
+          animate={panelMotion.animate}
+          className={
+            useDialogLayout
+              ? "controls-shell controls-shell--floating controls-shell--dialog"
+              : panelAlignment === "right"
+                ? "controls-shell controls-shell--floating controls-shell--align-right"
+                : "controls-shell controls-shell--floating controls-shell--align-left"
+          }
+          exit={panelMotion.exit}
+          id={controlsBodyId}
+          initial={panelMotion.initial}
+          transition={panelTransition}
         >
-          <span className="controls-shell__eyebrow">Controls</span>
-          <button
-            aria-label={controlsPinned ? "Unpin controls panel" : "Pin controls panel"}
-            aria-pressed={controlsPinned}
-            className={
-              controlsPinned
-                ? "controls-shell__pin-toggle controls-shell__pin-toggle--active"
-                : "controls-shell__pin-toggle"
-            }
-            onClick={() => {
-              setControlsPinned(!controlsPinned);
-            }}
-            type="button"
-          >
-            <svg
-              aria-hidden="true"
-              className="controls-shell__pin-icon"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M10.95 1.75a.75.75 0 0 1 .53 1.28L10.3 4.22l1.48 3.05a.75.75 0 0 1-.7 1.08H8.74L8.2 13.9a.75.75 0 0 1-1.48 0l-.54-5.55H3.83a.75.75 0 0 1-.7-1.08L4.6 4.22 3.42 3.03a.75.75 0 0 1 .53-1.28z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-        </motion.div>
-
-        <div className="controls-shell__body">
           <motion.div
             animate={sectionMotion.animate}
-            className="controls-shell__top"
+            className="controls-shell__eyebrow-row"
             initial={sectionMotion.initial}
             transition={sectionTransition}
           >
-            <section
-              aria-labelledby={`${controlsBodyId}-range`}
-              className="controls-card"
-            >
-              <span className="controls-card__title" id={`${controlsBodyId}-range`}>
-                Range
-              </span>
-              <div className="controls-card__grid controls-card__grid--range">
-                <label className="number-group number-group--from">
-                  <span>From</span>
-                  <input
-                    className="number-input"
-                    max={maxAvailableValue}
-                    min={minAvailableStart}
-                    onChange={(event) => {
-                      updateAvailableRange(
-                        getAvailableRangeFromStartInput(
-                          event.target.value,
-                          options.availableRange.end,
-                        ),
-                      );
-                    }}
-                    type="number"
-                    value={options.availableRange.start}
+            <span className="controls-shell__eyebrow">Controls</span>
+            {showPinToggle ? (
+              <button
+                aria-label={controlsPinned ? "Unpin controls panel" : "Pin controls panel"}
+                aria-pressed={controlsPinned}
+                className={
+                  controlsPinned
+                    ? "controls-shell__pin-toggle controls-shell__pin-toggle--active"
+                    : "controls-shell__pin-toggle"
+                }
+                onClick={() => {
+                  setControlsPinned(!controlsPinned);
+                }}
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="controls-shell__pin-icon"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M10.95 1.75a.75.75 0 0 1 .53 1.28L10.3 4.22l1.48 3.05a.75.75 0 0 1-.7 1.08H8.74L8.2 13.9a.75.75 0 0 1-1.48 0l-.54-5.55H3.83a.75.75 0 0 1-.7-1.08L4.6 4.22 3.42 3.03a.75.75 0 0 1 .53-1.28z"
+                    fill="currentColor"
                   />
-                </label>
-
-                <label className="number-group number-group--to">
-                  <span>To</span>
-                  <input
-                    className="number-input"
-                    max={maxAvailableValue}
-                    min={minAvailableStart}
-                    onChange={(event) => {
-                      updateAvailableRange(
-                        getAvailableRangeFromEndInput(
-                          event.target.value,
-                          options.availableRange.start,
-                        ),
-                      );
-                    }}
-                    type="number"
-                    value={options.availableRange.end}
-                  />
-                </label>
-
-                <label className="number-group number-group--toggle-row">
-                  <span>Range sliders</span>
-                  <span className="toggle-switch">
-                    <input
-                      checked={options.showRangeSliders}
-                      className="toggle-switch__input"
-                      onChange={(event) => {
-                        setShowRangeSliders(event.target.checked);
-                      }}
-                      type="checkbox"
-                    />
-                    <span className="toggle-switch__control" aria-hidden="true">
-                      <span className="toggle-switch__thumb" />
-                    </span>
-                  </span>
-                </label>
-              </div>
-            </section>
-
-            <section
-              aria-labelledby={`${controlsBodyId}-view`}
-              className="controls-card"
-            >
-              <span className="controls-card__title" id={`${controlsBodyId}-view`}>
-                View
-              </span>
-              <div className="controls-card__grid controls-card__grid--view">
-                <div className="number-group number-group--display">
-                  <span id={displayLabelId}>Display</span>
-                  <div
-                    aria-labelledby={displayLabelId}
-                    className="segmented-control"
-                    role="radiogroup"
-                  >
-                    <motion.span
-                      animate={{
-                        left: `calc(var(--segmented-control-padding) + ${Math.max(
-                          0,
-                          activePointDisplayModeIndex,
-                        )} * (var(--segmented-control-pill-width) + var(--segmented-control-gap)))`,
-                      }}
-                      aria-hidden="true"
-                      className="segmented-control__active-pill"
-                      initial={false}
-                      transition={
-                        prefersReducedMotion
-                          ? { duration: 0 }
-                          : segmentedControlTransition
-                      }
-                    />
-                    {pointDisplayModeOptions.map((option) => {
-                      const isActive = option.value === options.pointDisplayMode;
-
-                      return (
-                        <button
-                          aria-checked={isActive}
-                          className={
-                            isActive
-                              ? "segmented-control__button segmented-control__button--active"
-                              : "segmented-control__button"
-                          }
-                          key={option.value}
-                          onClick={() => {
-                            setPointDisplayMode(option.value);
-                          }}
-                          role="radio"
-                          type="button"
-                        >
-                          <span className="segmented-control__label">
-                            {option.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <label className="number-group number-group--toggle-row">
-                  <span>{guideFormulaLabel}</span>
-                  <span className="toggle-switch">
-                    <input
-                      checked={options.showEqualityLine}
-                      className="toggle-switch__input"
-                      onChange={(event) => {
-                        setShowEqualityLine(event.target.checked);
-                      }}
-                      type="checkbox"
-                    />
-                    <span className="toggle-switch__control" aria-hidden="true">
-                      <span className="toggle-switch__thumb" />
-                    </span>
-                  </span>
-                </label>
-              </div>
-            </section>
+                </svg>
+              </button>
+            ) : null}
           </motion.div>
+
+          <div className="controls-shell__body">
+            <motion.div
+              animate={sectionMotion.animate}
+              className="controls-shell__top"
+              initial={sectionMotion.initial}
+              transition={sectionTransition}
+            >
+              <section
+                aria-labelledby={`${controlsBodyId}-range`}
+                className="controls-card"
+              >
+                <span className="controls-card__title" id={`${controlsBodyId}-range`}>
+                  Range
+                </span>
+                <div className="controls-card__grid controls-card__grid--range">
+                  <label className="number-group number-group--from">
+                    <span>From</span>
+                    <input
+                      className="number-input"
+                      max={maxAvailableValue}
+                      min={minAvailableStart}
+                      onChange={(event) => {
+                        updateAvailableRange(
+                          getAvailableRangeFromStartInput(
+                            event.target.value,
+                            options.availableRange.end,
+                          ),
+                        );
+                      }}
+                      type="number"
+                      value={options.availableRange.start}
+                    />
+                  </label>
+                  <label className="number-group number-group--to">
+                    <span>To</span>
+                    <input
+                      className="number-input"
+                      max={maxAvailableValue}
+                      min={minAvailableStart}
+                      onChange={(event) => {
+                        updateAvailableRange(
+                          getAvailableRangeFromEndInput(
+                            event.target.value,
+                            options.availableRange.start,
+                          ),
+                        );
+                      }}
+                      type="number"
+                      value={options.availableRange.end}
+                    />
+                  </label>
+
+                  <label className="number-group number-group--toggle-row">
+                    <span>Range sliders</span>
+                    <span className="toggle-switch">
+                      <input
+                        checked={options.showRangeSliders}
+                        className="toggle-switch__input"
+                        onChange={(event) => {
+                          setShowRangeSliders(event.target.checked);
+                        }}
+                        type="checkbox"
+                      />
+                      <span className="toggle-switch__control" aria-hidden="true">
+                        <span className="toggle-switch__thumb" />
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </section>
+
+              <section
+                aria-labelledby={`${controlsBodyId}-view`}
+                className="controls-card"
+              >
+                <span className="controls-card__title" id={`${controlsBodyId}-view`}>
+                  View
+                </span>
+                <div className="controls-card__grid controls-card__grid--view">
+                  <div className="number-group number-group--display">
+                    <span id={displayLabelId}>Display</span>
+                    <div
+                      aria-labelledby={displayLabelId}
+                      className="segmented-control"
+                      role="radiogroup"
+                    >
+                      <motion.span
+                        animate={{
+                          left: `calc(var(--segmented-control-padding) + ${Math.max(
+                            0,
+                            activePointDisplayModeIndex,
+                          )} * (var(--segmented-control-pill-width) + var(--segmented-control-gap)))`,
+                        }}
+                        aria-hidden="true"
+                        className="segmented-control__active-pill"
+                        initial={false}
+                        transition={
+                          prefersReducedMotion
+                            ? { duration: 0 }
+                            : segmentedControlTransition
+                        }
+                      />
+                      {pointDisplayModeOptions.map((option) => {
+                        const isActive = option.value === options.pointDisplayMode;
+
+                        return (
+                          <button
+                            aria-checked={isActive}
+                            className={
+                              isActive
+                                ? "segmented-control__button segmented-control__button--active"
+                                : "segmented-control__button"
+                            }
+                            key={option.value}
+                            onClick={() => {
+                              setPointDisplayMode(option.value);
+                            }}
+                            role="radio"
+                            type="button"
+                          >
+                            <span className="segmented-control__label">
+                              {option.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <label className="number-group number-group--toggle-row">
+                    <span>{guideFormulaLabel}</span>
+                    <span className="toggle-switch">
+                      <input
+                        checked={options.showEqualityLine}
+                        className="toggle-switch__input"
+                        onChange={(event) => {
+                          setShowEqualityLine(event.target.checked);
+                        }}
+                        type="checkbox"
+                      />
+                      <span className="toggle-switch__control" aria-hidden="true">
+                        <span className="toggle-switch__thumb" />
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </section>
+            </motion.div>
 
           <motion.section
             animate={sectionMotion.animate}

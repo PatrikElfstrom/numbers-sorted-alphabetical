@@ -28,7 +28,13 @@ function App() {
     updateAvailableRange,
   } = useAppPreferences();
   const { plotRangeRef, plotSize } = usePlotSize(options.showRangeSliders);
-  const [controlsMinimized, setControlsMinimized] = useState(false);
+  const [controlsMinimized, setControlsMinimized] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.innerWidth <= 720;
+  });
   const deferredVisibleValueStart = useDeferredValue(
     options.visibleValueRange.start,
   );
